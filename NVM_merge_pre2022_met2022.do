@@ -1,14 +1,14 @@
 clear
 capture log close
-// cd "D:\OneDrive\OneDrive - Objectvision\VU\Projects\NVM Prijsindex\"
-cd "C:\Users\Jip\OneDrive - Objectvision\VU\Projects\NVM Prijsindex\" //ovsrv06
+cd "D:\OneDrive\OneDrive - Objectvision\VU\Projects\NVM Prijsindex\" //laptop
+// cd "C:\Users\Jip\OneDrive - Objectvision\VU\Projects\NVM Prijsindex\" //ovsrv06
 log using temp/nvmsetup.txt, text replace
 
 global maxprice = 5000000
 global minprice = 25000
 global maxsize = 500
 global minsize = 10
-global maxpricesqm = 15000
+global maxpricesqm = 20000
 global minpricesqm = 100
 global maxrooms = 25
 global new_filedate = 20240416
@@ -29,11 +29,11 @@ replace y = int(y)
 rename monument d_monument
 
 // determine transaction year
-gen trans_date = dofc(datumondertekeningakte)
-format trans_date %td
-g trans_year = year(trans_date)
-g trans_month = month(trans_date)
-g trans_day = day(trans_date)
+// gen trans_date = dofc(datumondertekeningakte)
+format datumondertekeningakte %td
+g trans_year = year(datumondertekeningakte)
+g trans_month = month(datumondertekeningakte)
+g trans_day = day(datumondertekeningakte)
 
 g maintoutside = (onderhoud_buiten-1)*0.125 if onderhoud_buiten>0
 g maintinside = (onderhoud_binnen-1)*0.125 if onderhoud_binnen>0
@@ -62,7 +62,7 @@ g d_detached = 0
 replace d_detached = 1 if nvm_cijfersnr==6 
 
 
-drop datumondertekeningakte trans_date onderhoud_binnen onderhoud_buiten onbibu maintoutside maintinside nvm_cijfersnr
+drop datumondertekeningakte onderhoud_binnen onderhoud_buiten onbibu maintoutside maintinside nvm_cijfersnr
 
 save EnhancedData/NVM_${new_filedate}_cleaned_renamed.dta, replace
 
@@ -228,7 +228,10 @@ replace postcode = "" if postcode=="0000AB"
 
 replace huisnummer = . if huisnummer == 0
 
+save EnhancedData/NVM_${new_filedate}_beforeDuplicates.dta, replace
+
 **# CLEAN DUPLICATES
+use EnhancedData/NVM_${new_filedate}_beforeDuplicates.dta, clear
 
 g building_type_label = ""
 replace building_type_label = "Terraced" if d_terraced == 1
@@ -261,6 +264,14 @@ quietly by houseid1 trans_year trans_month trans_day transactieprijs:  gen dup =
 duplicates report duplicates_ID
 drop if dup >= 2
 drop duplicates_ID dup
+
+
+//temp drop
+// drop straatnaam huisnummer huisnummertoevoeging postcode woonplaats d_monument nkamers trans_month trans_day d_maintgood d_detached d_semidetached d_terraced d_apartment 
+// drop building_type_label building_type houseid1
+//
+// export delimited using NVM_19852022_xycheck2_${exportdate}.csv, delimiter(";") replace
+
 
 // find repeat sales
 duplicates tag houseid1, g(times)
@@ -321,7 +332,7 @@ replace straatnaam = subinstr(straatnaam,",","",.)
 replace straatnaam = subinstr(straatnaam,"*","",.)
 replace straatnaam = subinstr(straatnaam,"|","",.)
 
-save Brondata/nvm19852022_geocoded_${exportdate}.dta, replace
+//save Brondata/nvm19852022_geocoded_${exportdate}.dta, replace
 
-export delimited using NVM_19852022_cleaned_${exportdate}.csv, delimiter(";") replace
+export delimited using NVM_19852022_${exportdate}_cleaned.csv, delimiter(";") replace
 
