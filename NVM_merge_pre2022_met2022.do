@@ -1,7 +1,7 @@
 clear
 capture log close
-cd "D:\OneDrive\OneDrive - Objectvision\VU\Projects\NVM Prijsindex\" //laptop
-// cd "C:\Users\Jip\OneDrive - Objectvision\VU\Projects\NVM Prijsindex\" //ovsrv06
+// cd "D:\OneDrive\OneDrive - Objectvision\VU\Projects\NVM Prijsindex\" //laptop
+cd "C:\Users\JipClaassens\OneDrive - Objectvision\VU\Projects\NVM Prijsindex\" //ovsrv08
 log using temp/nvmsetup.txt, text replace
 
 global maxprice = 5000000
@@ -11,13 +11,20 @@ global minsize = 10
 global maxpricesqm = 20000
 global minpricesqm = 100
 global maxrooms = 25
-global new_filedate = 20240416
-global exportdate = 20250307
+global new_filedate = 20250519
+global exportdate = 20250519
 
 **# PREP new data set
+use Brondata/NVM_2000_2023_raw_geocoded_${new_filedate}.dta, clear
+drop x y nummeraanduiding_id geocode_id niveau_code
+rename buurt_code buurt_nr_2024
+rename wijk_code wijk_nr_2024
+rename gemeente_code gem_nr_2024 
 
-use Brondata/nvm19852022_raw_${new_filedate}.dta, clear
-drop object_id pc4 bag_adresseerbaarobject_id bag_nad_id lat lon buurt_nr_2019 buurt_naam_2019 wijk_nr_2019 wijk_naam_2019 gem_nr_2019 gem_naam_2019 buurt_nr_2021 buurt_naam_2021 wijk_nr_2021 wijk_naam_2021 gem_nr_2021 gem_naam_2021 buurt_nr_2022 buurt_naam_2022 wijk_nr_2022 wijk_naam_2022 gem_nr_2022 gem_naam_2022 corop_nr corop_naam prov_nr prov_naam urbanisatiegraad mengvorm soortveiling veilingtype recreatiewoning bouwperiode gebruiksoppoverigeinpandigeruimt gebruiksoppgebouwgebbuitenr gebruiksoppexternebergruimte brutoinhoud  schuur koopconditie koopspecificatie transactieconditie transactiedetail oorspr_vraagkoopprijs oorspr_vraagkoopprijs_m2 laatste_vraagkoopprijs laatste_vraagkoopprijs_m2 transactieprijs_m2 proc_verschil_oorspr proc_verschil_laatst aanmelddatum looptijd datumtransport year soortwoning soortappartement woningtype nvm_cijfers
+
+drop object_id pc4 bag_adresseerbaarobject_id bag_nad_id lat lon buurt_nr* buurt_naam* wijk_nr* wijk_naam* gem_nr* gem_naam* corop_nr corop_naam prov_nr prov_naam 
+
+// drop urbanisatiegraad mengvorm soortveiling veilingtype recreatiewoning bouwperiode gebruiksoppoverigeinpandigeruimt gebruiksoppgebouwgebbuitenr gebruiksoppexternebergruimte brutoinhoud  schuur koopconditie koopspecificatie transactieconditie transactiedetail oorspr_vraagkoopprijs oorspr_vraagkoopprijs_m2 laatste_vraagkoopprijs laatste_vraagkoopprijs_m2 transactieprijs_m2 proc_verschil_oorspr proc_verschil_laatst aanmelddatum looptijd datumtransport year soortwoning soortappartement woningtype nvm_cijfers
 
 rename xcoord x
 rename ycoord y
@@ -71,7 +78,8 @@ save EnhancedData/NVM_${new_filedate}_cleaned_renamed.dta, replace
 
 use Brondata/nvm19852021_geocoded_20220405.dta, clear
 
-drop pc6code gem_id prov_id nvmreg_id afd_id categorie inhoud huisklasse soorthuis kenmerkwoning soortapp soortwoning oorsprvrkooppr laatstvrkooppr procverschil verkoopcond loopt datum_aanmelding nvmcijfers isnieuwbouw isbelegging status openportiek lift kwaliteit nverdiep vtrap zolder vlier praktijkr woonka nbalkon ndakkap ndakterras nkeuken nbijkeuk nwc nbadk parkeer inpandig tuinlig tuinafw isol verw ligcentr ligmooi ligdrukw erfpacht_tonen permanent ged_verhuurd kelder monumentaal geocode_id buurt_code wijk_code gemeente_code nvmafd_code niveau_code nummeraanduiding_id bag_type_woonpand
+drop pc6code gem_id prov_id nvmreg_id afd_id geocode_id buurt_code wijk_code gemeente_code nvmafd_code niveau_code nummeraanduiding_id bag_type_woonpand
+// drop categorie inhoud huisklasse soorthuis kenmerkwoning soortapp soortwoning oorsprvrkooppr laatstvrkooppr procverschil verkoopcond loopt datum_aanmelding nvmcijfers isnieuwbouw isbelegging status openportiek lift kwaliteit nverdiep vtrap zolder vlier praktijkr woonka nbalkon ndakkap ndakterras nkeuken nbijkeuk nwc nbadk parkeer inpandig tuinlig tuinafw isol verw ligcentr ligmooi ligdrukw erfpacht_tonen permanent ged_verhuurd kelder monumentaal 
 
 g maintoutside = (onbu-1)*0.125 if onbu>0
 g maintinside = (onbi-1)*0.125 if onbi>0
@@ -131,17 +139,15 @@ drop bwper woonopp type datum_afmelding onbi onbu bag_bouwjaar maintoutside main
 
 **# Append new to old and harmonize variables
 
-append using EnhancedData\NVM_${new_filedate}_cleaned_renamed.dta, gen(from2022) force
-**# Bookmark #2
+append using EnhancedData\NVM_${new_filedate}_cleaned_renamed.dta, gen(from2000_2022) force
 
 replace postcode = subinstr(postcode, " ", "", .)
 replace nkamers = 1 if nkamers == 0
 
-drop from2022
+drop from2000_2022
 
 **# Clean up
-
-// keep straatnaam huisnummer huisnummertoevoeging postcode woonplaats perceel oppervlak transactieprijs nkamers d_monument x y trans_year trans_month trans_day d_apartment d_terraced d_semidetached d_detached bouwjaar d_maintgood
+drop transactieprijs_m2 oorspr_vraagkoopprijs_m2 laatste_vraagkoopprijs_m2
 
 /// Drop if price, size, or price per m2 exceed a certain value
 drop if transactieprijs > $maxprice
@@ -226,6 +232,14 @@ replace postcode = "" if postcode=="0000"
 replace postcode = "" if postcode=="0000AA"
 replace postcode = "" if postcode=="0000AB"
 
+replace straatnaam = subinstr(straatnaam,";","",.)
+replace straatnaam = subinstr(straatnaam,"&","",.)
+replace straatnaam = subinstr(straatnaam,"#","",.)
+replace straatnaam = subinstr(straatnaam,".","",.)
+replace straatnaam = subinstr(straatnaam,",","",.)
+replace straatnaam = subinstr(straatnaam,"*","",.)
+replace straatnaam = subinstr(straatnaam,"|","",.)
+
 replace huisnummer = . if huisnummer == 0
 
 save EnhancedData/NVM_${new_filedate}_beforeDuplicates.dta, replace
@@ -258,10 +272,28 @@ egen houseid1 = group(postcode huisnummer huisnummertoev building_type corr_m2 c
 drop houseid0 corr_m2 corr_nkamers corr_bouwjaar
 
 // remove the duplicates
+// group based on field that define duplicates
 egen duplicates_ID = group(houseid1 trans_year trans_month trans_day transactieprijs), missing
 sort houseid1 trans_year trans_month trans_day transactieprijs
 quietly by houseid1 trans_year trans_month trans_day transactieprijs:  gen dup = cond(_N==1,0,_n)
 duplicates report duplicates_ID
+
+
+// ====  velden van duplicaten samenvelden om geen informatie weg te gooien. 
+
+// is al volledig: 
+// huisnummer huisnummertoevoeging postcode straatnaam oppervlak transactieprijs nkamers d_monument x y trans_year trans_month trans_day d_apartment d_terraced d_semidetached d_detached bouwjaar d_maintgood building_type_label building_type houseid1 duplicates_ID dup
+
+local var_list woonplaats categorie perceel inhoud huisklasse soorthuis kenmerkwoning soortapp soortwoning oorsprvrkooppr laatstvrkooppr procverschil verkoopcond loopt datum_aanmelding nvmcijfers isnieuwbouw isbelegging status openportiek lift kwaliteit nverdiep vtrap zolder vlier praktijkr woonka nbalkon ndakkap ndakterras nkeuken nbijkeuk nwc nbadk parkeer inpandig tuinlig tuinafw isol verw ligcentr ligmooi ligdrukw erfpacht_tonen permanent ged_verhuurd kelder monumentaal urbanisatiegraad mengvorm soortveiling veilingtype soortappartement woningtype nvm_cijfers recreatiewoning bouwperiode gebruiksoppoverigeinpandigeruimt gebruiksoppgebouwgebbuitenr gebruiksoppexternebergruimte brutoinhoud schuur koopconditie koopspecificatie transactieconditie transactiedetail oorspr_vraagkoopprijs laatste_vraagkoopprijs proc_verschil_oorspr proc_verschil_laatst aanmelddatum looptijd datumtransport year year2 niveau_code 
+foreach var of local var_list{
+    quietly bysort duplicates_ID (`var'): replace `var' = `var'[_n+1] if missing(`var')
+    quietly bysort duplicates_ID (`var'): replace `var' = `var'[_n-1] if missing(`var')
+    quietly bysort duplicates_ID (`var'): replace `var' = `var'[_n+2] if missing(`var')
+    quietly bysort duplicates_ID (`var'): replace `var' = `var'[_n-2] if missing(`var')
+    quietly bysort duplicates_ID (`var'): replace `var' = `var'[_n+3] if missing(`var')
+    quietly bysort duplicates_ID (`var'): replace `var' = `var'[_n-3] if missing(`var')
+}
+
 drop if dup >= 2
 drop duplicates_ID dup
 
@@ -269,7 +301,6 @@ drop duplicates_ID dup
 //temp drop
 // drop straatnaam huisnummer huisnummertoevoeging postcode woonplaats d_monument nkamers trans_month trans_day d_maintgood d_detached d_semidetached d_terraced d_apartment 
 // drop building_type_label building_type houseid1
-//
 // export delimited using NVM_19852022_xycheck2_${exportdate}.csv, delimiter(";") replace
 
 
@@ -324,15 +355,24 @@ compress
 
 order obsid xyid houseid trans_year trans_month trans_day perceel oppervlak transactieprijs bouwjaar straatnaam huisnummer huisnummertoevoeging postcode
 
-replace straatnaam = subinstr(straatnaam,";","",.)
-replace straatnaam = subinstr(straatnaam,"&","",.)
-replace straatnaam = subinstr(straatnaam,"#","",.)
-replace straatnaam = subinstr(straatnaam,".","",.)
-replace straatnaam = subinstr(straatnaam,",","",.)
-replace straatnaam = subinstr(straatnaam,"*","",.)
-replace straatnaam = subinstr(straatnaam,"|","",.)
+save EnhancedData/NVM_1985_2023_${exportdate}_cleaned.dta, replace
 
-//save Brondata/nvm19852022_geocoded_${exportdate}.dta, replace
+use EnhancedData/NVM_1985_2023_${exportdate}_cleaned.dta, clear
 
-export delimited using NVM_19852022_${exportdate}_cleaned.csv, delimiter(";") replace
+import delimited Brondata/NVM_1985_2023_${new_filedate}_cleaned_slim_Geocoded.csv, clear
 
+
+
+
+
+
+
+
+
+export delimited using NVM_19852023_${exportdate}_allvars_cleaned.csv, delimiter(";") replace
+
+drop urbanisatiegraad mengvorm soortveiling veilingtype recreatiewoning bouwperiode gebruiksoppoverigeinpandigeruimt gebruiksoppgebouwgebbuitenr gebruiksoppexternebergruimte brutoinhoud  schuur koopconditie koopspecificatie transactieconditie transactiedetail oorspr_vraagkoopprijs  laatste_vraagkoopprijs   proc_verschil_oorspr proc_verschil_laatst aanmelddatum looptijd datumtransport year soortwoning soortappartement woningtype nvm_cijfers
+drop categorie inhoud huisklasse soorthuis kenmerkwoning soortapp oorsprvrkooppr laatstvrkooppr procverschil verkoopcond loopt datum_aanmelding nvmcijfers isnieuwbouw isbelegging status openportiek lift kwaliteit nverdiep vtrap zolder vlier praktijkr woonka nbalkon ndakkap ndakterras nkeuken nbijkeuk nwc nbadk parkeer inpandig tuinlig tuinafw isol verw ligcentr ligmooi ligdrukw erfpacht_tonen permanent ged_verhuurd kelder monumentaal 
+drop oorspr_vraagkoopprijs_m2 laatste_vraagkoopprijs_m2 year2 niveau_code
+
+export delimited using NVM_19852023_${exportdate}_cleaned.csv, delimiter(";") replace
