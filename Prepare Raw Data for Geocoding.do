@@ -29,6 +29,7 @@ save Temp/${filename}_cleaned_slim_geocoded.dta, replace
 // save Temp/${filename}_slim_geocoded.dta, replace
 
 use EnhancedData/${filename}_${exportdate}_cleaned.dta, clear
+use EnhancedData/${filename}_20250519_cleaned.dta, clear
 // use Brondata/${filename}.dta, clear
 
 g geocode_id = _n
@@ -48,6 +49,9 @@ save Brondata/${filename}_cleaned_geocoded_${exportdate}.dta, replace
 
 // use Brondata\nvm19852021_geocoded_${exportdate}.dta, clear
 // keep datum_afm transactieprijs m2 gem_id 
+
+
+export delimited using EnhancedData/${filename}_${exportdate}_allvars_cleaned_geocoded.csv, delimiter(";") replace
 
 
 
