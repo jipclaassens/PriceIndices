@@ -1,0 +1,130 @@
+container SourceData : using = "Units;geography;Classifications;ModelParameters"
+{  
+	#include<bag.dms>
+	// #include<WatsonHolmes.dms>
+	#include<NVM.dms>
+	#include<RegioIndelingen.dms>
+	#include<BBG.dms>
+	
+	
+	
+	#include<Diversen.dms>
+	
+	unit<UInt32> Logistiek_panden
+	:	StorageName     = "%RSo_DataDir%/Vastgoed/LogistiekBuildings/buildings2021NL_rdc.shp"
+	,	StorageType     = "gdal.vect"
+	,	StorageReadOnly = "True"
+	,	DialogData      = "rdc_meter"
+	,	url             = "%RSo_DataDir%/Vastgoed/LogistiekBuildings/buildings2021NL_meta.txt"
+	,	SyncMode        = "none"
+	, 	Descr           = "Bag panden geklassificeerd in logistiek functies door Merten Nefs (Nefs, M. (2022). Dutch Distribution Centres 2021 Geodata. Rotterdam: 4TU. ResearchData. DOI, 10(19361018), v1). Ontvangen van Eric Koomen op 28 maart 2022"
+	{
+		attribute<rdc_meter> geometry (poly);
+		attribute<UInt32>    function_n;
+		attribute<String>    function;
+		attribute<String>    bag_id;
+		attribute<uint64>    pand_bag_nr := uint64(bag_id);
+		attribute<UInt32>    constr_yea;
+		
+		unit<UInt32> Logistics := select_with_attr_by_cond(., function_n != 3)
+		{
+		}
+	}
+	
+	
+	container Schoolkwaliteit
+	{
+		unit<UInt32> Toetsscores 
+		: StorageName = "%SourceDataDir%/Overig/DUO_Gemiddelde eindscores per vestiging in het bo en sbo_20250130.csv"
+		, StorageType = "gdal.vect"
+		, StorageReadOnly = "true"
+		{
+			attribute<String>            School_code           := Instellingscode + vestigingscode, Descr = "Concatenation of institution code and branch code to uniquely identify a school-vestiging";
+			attribute<Schoolvestigingen> Schoolvestigingen_rel := rlookup(School_code, Schoolvestigingen/vestigingscode), Descr = "Lookup from DUO test row to school-vestiging record (address, etc.)";
+			
+			unit<uint32> Peiljaren := unique(PEILJAAR)
+			{
+				attribute<string> name := 'Y'+values;
+			}
+			
+			container PerPeiljaar := 
+				for_each_ne(
+					Peiljaren/name
+					, 'PerPeiljaar_T('+quote(Peiljaren/values)+')'
+				);
+			
+			Template PerPeiljaar_T
+			{
+				parameter<string> PeiljaarValue;
+				//
+				unit<UInt32> Relevant := select_with_attr_by_cond(Toetsscores, LEERJAAR == '8' && PEILJAAR == PeiljaarValue && IsDefined(Schoolvestigingen_rel))
+				{
+					attribute<string>            Aanbieder             := EINDTOETS_PO, Descr = "Test provider label as reported by DUO (e.g., CET, IEP, ROUTE 8, AMN, DIA)";
+					attribute<float32>           Score                 := float32(GEMIDDELDE_UITSLAG), Descr = "Raw end-test score on the provider’s own scale (not yet harmonised)";
+					attribute<float32>           Deelnemers            := float32(AANTAL_LEERLINGEN), Descr = "Number of pupils in group 8 at this vestiging who actually participated in the end test";
+					attribute<float32>           mu                    := Aanbieders/mu[Aanbieders_rel];
+					
+					attribute<Aanbieders>        Aanbieders_rel        := rlookup(Aanbieder, Aanbieders/values), Descr = "Link from each row to its provider in the Aanbieders unit";
+					
+					attribute<float32> z       := (Score - mu) / max_elem(0.00001f, Aanbieders/sd[Aanbieders_rel]), Descr = "Z-score per row: (score - provider mean) / provider sd, weighted at provider level";
+					attribute<float32> z_index := 50f + 10f * z < 0f 
+													? 0f
+													: 50f + 10f * z > 100f
+														? 100f
+														: 50f + 10f * z
+														, Descr = "0–100 index derived from z (50 ≈ provider average; 10 ≈ 1 sd)";
+
+					// attribute<float32> frac_ontheffing := Ontheffingen / (Deelnemers + Ontheffingen), Descr = "Share of exemptions in total group-8 cohort at this vestiging (not used for score weighting)";
+					
+					unit<Uint32> Aanbieders := unique(Aanbieder), Descr = ""
+					{
+						attribute<float32> tot_n      := sum(../Deelnemers, ../Aanbieders_rel), Descr = "Total number of group 8 pupils across all schools for this test provider (used as denominator in weighted averages)";
+						attribute<float32> sum_w      := sum(../Deelnemers * ../Score, ../Aanbieders_rel), Descr = "Weighted sum of test scores for this test provider (score × participants)";
+						attribute<float32> mu         := sum_w / tot_n, Descr = "Weighted mean of raw test scores for this test provider in 2018, used for z-score normalisation";
+					
+						attribute<float32> sum_w2     := sum((../Score - ../mu)^2f * ../Deelnemers, ../Aanbieders_rel), Descr = "Weighted sum of squared deviations from provider mean (for sd)";
+						attribute<float32> sd         := sqrt(sum_w2 / tot_n), Descr = "Weighted standard deviation of raw scores per provider (2018)";
+					}
+
+					// Z-score & index (na rlookup van mu/sd uit Aanbieders; zie onder)
+
+					// (Sjabloon) Aggregatie na jouw koppeling aan pc6:
+					attribute<string> PC6 := Schoolvestigingen/PC6[Schoolvestigingen_rel];
+					
+					attribute<Per_PC6> PC6_rel := rlookup(PC6, Per_PC6/values);
+					
+					unit<UInt32> Per_PC6 := unique(PC6)
+					{
+						attribute<float32> wsum            := sum(../z_index * ../Deelnemers, ../pc6_rel), Descr = "Sum of z_index weighted by test participants for this pc6";
+						attribute<float32> nsum            := sum(../Deelnemers, ../pc6_rel), Descr = "Total number of test participants summed over schools mapped to this pc6";
+						attribute<float32> pc6_schoolindex := nsum>0f ?  wsum / nsum : null_f, Descr = "Weighted mean z-index per pc6 (weights = number of test participants)";
+					}
+				}
+				
+				unit<uint32> Result := Relevant/Per_PC6
+				{
+					attribute<rdc_meter>     geometry (poly) := rjoin(PC6, /Brondata/Regios/Postcode6/MRA/Label, /Brondata/Regios/Postcode6/MRA/geometry);
+					attribute<string>  PC6             := values;
+					attribute<float32> Score           := pc6_schoolindex;
+					
+					attribute<.>       per_grid           (NL_grid/domain) := poly2grid(geometry, NL_grid/domain);
+					 
+					attribute<float32> Score_grid         (NL_grid/domain) := Score[per_grid];
+					attribute<float32> HasScore           (NL_grid/domain) := float32(Score_grid > 0f);
+					attribute<float32> Uitgesmeerd_1000m  (NL_grid/domain) := potential(Score_grid, geography/Distmatrices_100m/pot1000m/rev_dist_scaled) / potential(HasScore, geography/Distmatrices_100m/pot1000m/rev_dist_scaled);
+					attribute<float32> Uitgesmeerd_2500m  (NL_grid/domain) := potential(Score_grid, geography/Distmatrices_100m/pot2500m/rev_dist_scaled) / potential(HasScore, geography/Distmatrices_100m/pot2500m/rev_dist_scaled);
+					attribute<float32> Uitgesmeerd        (NL_grid/domain) := MakeDefined(Uitgesmeerd_1000m, Uitgesmeerd_2500m);
+				}
+			}
+		}
+
+		unit<UInt32> Schoolvestigingen
+		: StorageName = "%SourceDataDir%/Overig/DUO_schoolvestigingen-basisonderwijs_20250801.csv"
+		, StorageType = "gdal.vect"
+		, StorageReadOnly = "true"
+		{
+			attribute<string> PC6 := substr(postcode, 0, 4)+substr(postcode, 5, 7);
+		}
+		
+	}
+}

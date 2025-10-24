@@ -1,0 +1,181 @@
+container NVM: using = "Units"
+{
+	parameter<string> nvm_filedate       := ModelParameters/nvm_filedate; 
+	// parameter<string> csv_filename       := '%SourceDataDir%/NVM/NVM_cleaned_'+nvm_filedate+'.csv';
+	parameter<string> csv_filename       := '%SourceDataDir%/NVM/NVM_1985_2023_cleaned_geocoded_'+nvm_filedate+'_slim.csv';
+	parameter<string> fss_filename       := '%LocalDataDir%/NVM/nvm_'+nvm_filedate;
+
+	container TableChopper
+	{
+		unit<uint32>      domain         := range(uint32, 0, count_rows), freedata = "false";
+		parameter<string> fieldseparator := ';';
+		
+		parameter<string> filedata_src
+		:  StorageType   = "str"
+		,  StorageName = "=csv_filename"
+		,  StorageReadOnly = "true";
+		parameter<string> filedata := replace(filedata_src, ',', '', '\''','', '', ''); 
+		parameter<uint32> count_rows              := strcount(filedata, '\n') - 1; //   4136157  
+		parameter<string> headerline              := readLines(filedata, void, 0);
+		
+		unit<uint32> field := Range(uint32, 0, strcount(headerline, fieldseparator) + 1)
+		{
+			attribute<string> name := ReadArray(headerline , field, string, 0);
+		}
+			
+		attribute<string> bodylines (domain) := readLines(filedata, domain, headerline/ReadPos);
+
+		container data := 
+			for_each_nedv(
+				field/name
+				,'ReadElems(
+					BodyLines
+					,string
+					,'+ MakeDefined(field/name[sub_or_null(id(field),1)] + '/ReadPos','const(0, domain)')+' 
+					,16
+				)'
+				,domain
+				,string
+			);
+		parameter<string> Generate     := 'Ready', ExplicitSuppliers = "NVM_Data";
+	}
+	
+	container NVM_Data := 
+		for_each_nedv(
+			TableChopper/Field/name
+			, 'TableChopper/Data/' +TableChopper/Field/name
+			, TableChopper/domain
+			, string
+		);
+	
+	unit<uint32> Result := TableChopper/domain
+	{
+		attribute<uint32>        obsid                 := NVM_Data/obsid[uint32];
+		attribute<rdc_meter>     geometry              := point_xy(NVM_Data/x[float64], NVM_Data/y[float64], rdc_meter), DisableStorage = "true";
+		attribute<uint2>         d_apartment           := NVM_Data/d_apartment[uint2];
+		attribute<uint2>         d_terraced            := NVM_Data/d_terraced[uint2];
+		attribute<uint2>         d_semidetached        := NVM_Data/d_semidetached[uint2];
+		attribute<uint2>         d_detached            := NVM_Data/d_detached[uint2];
+		
+		attribute<eur>           price                 := NVM_Data/transactieprijs[eur];
+		attribute<meter2>        size                  := NVM_Data/oppervlak[meter2];
+		attribute<meter2>        lotsize               := NVM_Data/perceel[meter2] >= 99999[meter2] ? null_f : NVM_Data/perceel[meter2];
+		attribute<jaar>          trans_year            := value(NVM_Data/trans_year, int16)[jaar];
+		attribute<int16>         trans_month           := value(NVM_Data/trans_month, int16);
+		attribute<jaar>          buildingyear          := NVM_Data/bouwjaar[jaar];
+		attribute<uint32>        nrooms                := NVM_Data/nkamers[uint32];
+		attribute<uint32>        d_maintgood           := NVM_Data/d_maintgood[uint32];
+		attribute<uint16>        bag_pand_hoogte       := NVM_Data/bag_pand_hoogte[uint16];
+		attribute<uint32>        d_highrise            := uint32(bag_pand_hoogte >= uint16(ModelParameters/Hoogbouwgrens[cm]));
+		
+		attribute<uint32>        UAI_2021                 := SourceData/Diversen/UAi_2021_int[rdc_100m_rel];
+		attribute<uint32>        tt_500k_inw_2020_min     := uint32(SourceData/Diversen/tt_500kinhab_min_2020[rdc_100m_rel]);
+		attribute<uint32>        tt_trainstation_2006_min := uint32(SourceData/Diversen/tt_Trainstation_2006_min[rdc_100m_rel]);
+		attribute<uint2>         d_groennabij             := uint2(/SourceData/BBG/Dominant/BBG_groen_buff[rdc_10m_rel]);
+
+		attribute<rdc_10m>       rdc_10m_rel              := geometry[rdc_10m], DisableStorage = "true";
+		attribute<rdc_100m>      rdc_100m_rel             := geometry[rdc_100m], DisableStorage = "true";
+	}
+	
+	
+	container Types_WP4 := 
+		for_each_ne(
+			WP4/name
+			, 'TypeSubset_T('+quote(WP4/name_english)+')'
+	);
+	
+	Template TypeSubset_T
+	{
+		//
+		parameter<string> type;
+		//
+		unit<uint32> subset := ='select_with_org_rel_with_attr_by_cond(Result, Result/d_' +string(type)+ '[uint2] == 1[uint2] && Result/lotsize[meter2] < 99999[meter2])'
+		{
+			// attribute<rdc_meter>    geometry           := Result/geometry[org_rel];
+			attribute<rdc_25m>      rdc_25m_rel        := geometry[rdc_25m];
+		}
+	}
+	
+	container RegionalAverages
+	{
+		unit<uint32> WP_typen : nrofrows = 1
+		{
+			// attribute<string> name : ['WP2', 'WP4'];
+			attribute<string> name : ['WP4'];
+		}
+		
+		container per_WP_type :=
+			for_each_ne(
+				WP_typen/name
+				, 'per_WP_type_T('+quote(WP_typen/name)+')'
+			);
+		Template per_WP_type_T
+		{
+			parameter<string> type_name;
+			///
+			unit<uint8>  domain := =type_name;
+			unit<uint32> comb   := =type_name+'xHouseChar';
+			
+			container MakeNationalAvgCharacteristics := 
+				for_each_nedv(
+					HouseCharacteristics/name,
+					replace(
+						'union_data('
+							'domain,'+
+							AsItemList(
+								replace(
+									'mean(NVM/Types_'+type_name+'/@TW@/Subset/@VT@[float32])',
+									'@TW@', domain/name
+								)
+							)+
+						')',
+						'@VT@', HouseCharacteristics/name
+					),
+					domain, float32
+				), StorageName = "='%PrivDataDir%/NVM_Nationalekarakteristieken_'+Modelparameters/nvm_filedate+'/'+type_name+'.fss'";
+					
+				 
+			container CalcRegionalAvgCharacteristics := 
+				for_each_ne(
+					comb/name
+					, 'CalcRegionalAvgCharacteristics_T(' +quote(comb/name)+ ',' +quote(comb/WP)+ ',' +quote(comb/HouseChar)+ ',' +quote(comb/ValueType)+ ','+quote(type_name)+')'
+				);
+		
+			Template CalcRegionalAvgCharacteristics_T
+			{
+				//
+				parameter<string> HousetypeHouseChar;
+				parameter<string> WP;
+				parameter<string> HouseChar;
+				parameter<string> ValueType;
+				parameter<string> WP_type_str;
+				//
+				parameter<string> distance_decay_type := 'rev_dist_scaled';
+				
+				unit<uint32> NVM_Data := ='NVM/Types_'+WP_type_str+'/'+WP+'/Subset' 
+				{
+					attribute<float32> Sum_attribute_ha    (rdc_25m) := ='sum('+HouseChar+'[float32], rdc_25m_rel)';
+					attribute<float32> Count_attribute_ha  (rdc_25m) := ='count('+HouseChar+', rdc_25m_rel)[float32]';
+					attribute<float32> Potential_sum       (rdc_25m) := ='potential(Sum_attribute_ha, /Geography/Distmatrices_25m/pot5000m/'+distance_decay_type+')';  //Geography/Distmatrices/Impl_25m/pot5000m/potrange/rev_dist_scaled
+					attribute<float32> Potential_count     (rdc_25m) := ='potential(Count_attribute_ha, /Geography/Distmatrices_25m/pot5000m/'+distance_decay_type+')';
+					
+					attribute<float32> Potential (rdc_25m) := Potential_sum / Potential_count;
+				} 
+			}
+			
+			container MakeRegionalAvgCharacteristics := 
+				for_each_nedvnat(
+					comb/name
+					, 'value(CalcRegionalAvgCharacteristics/'+comb/name+'/NVM_Data/Potential,'+comb/ValueType+')'
+					, rdc_25m
+					, comb
+					, comb/ValueType
+					, '%PrivDataDir%/NVM_Regiokarakteristieken_'+Modelparameters/nvm_filedate+'/'+type_name+'/'+comb/name+'.tif'
+					, 'tif'
+				)
+			{
+				// parameter<String> Generate := 'Ready', ExplicitSuppliers = "=AsList(comb/name, ';')";
+			}
+		}
+	}
+}

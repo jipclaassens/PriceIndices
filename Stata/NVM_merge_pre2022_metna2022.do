@@ -297,13 +297,6 @@ foreach var of local var_list{
 drop if dup >= 2
 drop duplicates_ID dup
 
-
-//temp drop
-// drop straatnaam huisnummer huisnummertoevoeging postcode woonplaats d_monument nkamers trans_month trans_day d_maintgood d_detached d_semidetached d_terraced d_apartment 
-// drop building_type_label building_type houseid1
-// export delimited using NVM_19852022_xycheck2_${exportdate}.csv, delimiter(";") replace
-
-
 // find repeat sales
 duplicates tag houseid1, g(times)
 replace times = times+1
@@ -320,35 +313,8 @@ duplicates report obsid
 
 drop houseid1 times yeartimes random 
 
-**# Enrich dataset
 
-// g d_construnknown = 0
-// replace d_construnknown = 1 if bouwjaar == .
-// g d_constrlt1920 = 0
-// replace d_constrlt1920 = 1 if bouwjaar <= 1919 & bouwjaar != .  
-// g d_constr19201944 = 0 
-// replace d_constr19201944 = 1 if bouwjaar >= 1920 & bouwjaar <= 1944
-// g d_constr19451959 = 0 
-// replace d_constr19451959 = 1 if bouwjaar >= 1945 & bouwjaar <= 1959
-// g d_constr19601973 = 0 
-// replace d_constr19601973 = 1 if bouwjaar >= 1960 & bouwjaar <= 1973
-// g d_constr19741990 = 0 
-// replace d_constr19741990 = 1 if bouwjaar >= 1974 & bouwjaar <= 1990
-// g d_constr19911997 = 0 
-// replace d_constr19911997 = 1 if bouwjaar >= 1991 & bouwjaar <= 1997
-// g d_constrgt1997 = 0 
-// replace d_constrgt1997 = 1 if bouwjaar >= 1998 & bouwjaar != .
-//
-// g construction_period_label = ""
-// replace construction_period_label = "Unknown" if d_construnknown == 1
-// replace construction_period_label = "Before 1920" if d_constrlt1920 == 1
-// replace construction_period_label = "1920-1944" if d_constr19201944 == 1
-// replace construction_period_label = "1945-1959" if d_constr19451959 == 1
-// replace construction_period_label = "1960-1973" if d_constr19601973 == 1
-// replace construction_period_label = "1974-1990" if d_constr19741990 == 1
-// replace construction_period_label = "1991-1997" if d_constr19911997 == 1
-// replace construction_period_label = "After 1997" if d_constrgt1997 == 1
-// encode construction_period_label, generate(construction_period)
+//================
 
 
 compress

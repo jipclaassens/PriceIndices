@@ -1,0 +1,20 @@
+container Impl
+{
+	container Make25mgrids_Modus := 
+		for_each_ne(
+			Grondgebruik/ReeksJaren/naam
+			,'Modus25mT('+string(Grondgebruik/ReeksJaren/jaar)+')'
+		)
+	{
+		container Y2020 := Modus25m_Y2020_T(2020);
+	}
+	
+	container Make100mgrids_Modus := 
+		for_each_ne(
+			Grondgebruik/ReeksJaren/naam
+			,'Modus100mT('+string(Grondgebruik/ReeksJaren/jaar)+')'
+		)
+	{
+		container Y2020 := Modus100m_Y2020_T(2020);
+	}
+}

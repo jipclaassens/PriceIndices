@@ -1,0 +1,113 @@
+container RegioIndelingen
+{
+	unit<uint32> Gebiedsindelingen_jaren := range(uint32, 2000, 2025)
+	{
+		attribute<uint32> jaar := id(.);
+		attribute<string> name := 'Y'+string(jaar);
+	}
+	container Gebiedsindelingen :=
+		for_each_ne(
+			Gebiedsindelingen_jaren/name
+			, 'Read_Gebiedsindelingen_gpkg_T('+quote(string(Gebiedsindelingen_jaren/jaar))+')'
+		);
+
+	Template Read_Gebiedsindelingen_gpkg_T
+	{
+		parameter<string> jaar;
+		//
+		container gpkg
+		:	StorageName     = "='%SourceDataDir%/CBS/cbsgebiedsindelingen'+jaar+'.gpkg'"
+		, 	StorageType     = "gdal.vect"
+		,	StorageReadOnly = "True"
+		,	SyncMode        = "alltables"
+		,	DialogData      = "rdc_meter";
+	}
+	
+	
+	unit<uint32>  Buurt := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/buurt_niet_gegeneraliseerd' 
+	{
+		attribute<rdc_meter> geometry (poly)         := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/buurt_niet_gegeneraliseerd/geometry';
+		attribute<string>    statcode                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/buurt_niet_gegeneraliseerd/statcode';
+		attribute<string>    statnaam                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/buurt_niet_gegeneraliseerd/statnaam';
+		attribute<string>    name                    := AsItemName(statnaam);
+		attribute<string>    label                   := statnaam;
+		
+		attribute<Wijk>      Wijk_rel                := point_in_polygon(centroid_or_mid(geometry), wijk/geometry);
+	}
+	
+	unit<uint32>  Wijk := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/wijk_niet_gegeneraliseerd' 
+	{
+		attribute<rdc_meter> geometry (poly)         := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/wijk_niet_gegeneraliseerd/geometry';
+		attribute<string>    statcode                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/wijk_niet_gegeneraliseerd/statcode';
+		attribute<string>    statnaam                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/wijk_niet_gegeneraliseerd/statnaam';
+		attribute<string>    name                    := AsItemName(statnaam);
+		attribute<string>    label                   := statnaam;
+		attribute<Gemeente>  gem_rel                 := point_in_polygon(centroid_or_mid(geometry), gemeente/geometry);
+	}
+	
+	unit<uint32>  Gemeente := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/gemeente_niet_gegeneraliseerd' 
+	{
+		attribute<rdc_meter> geometry (poly)         := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/gemeente_niet_gegeneraliseerd/geometry';
+		attribute<string>    statcode                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/gemeente_niet_gegeneraliseerd/statcode';
+		attribute<string>    statnaam                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/gemeente_niet_gegeneraliseerd/statnaam';
+		attribute<string>    name                    := AsItemName(statnaam);
+		attribute<string>    label                   := statnaam;
+
+		container V := for_each_nedv(name, 'value('+string(id(.))+', ..)', void, .);
+	}
+	
+	unit<uint32>  Provincie := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/Provincie_gegeneraliseerd' 
+	{
+		attribute<rdc_meter> geometry (poly)         := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/Provincie_gegeneraliseerd/geometry';
+		attribute<string>    statcode                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/Provincie_gegeneraliseerd/statcode';
+		attribute<string>    statnaam                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/Provincie_gegeneraliseerd/statnaam';
+		attribute<string>    name                    := AsItemName(statnaam);
+		attribute<string>    label                   := statnaam;
+
+		container V := for_each_nedv(name, 'value('+string(id(.))+', ..)', void, .);
+	}
+	
+	unit<UInt32> NL : NrOfRows = 1
+	, Descr = "Nederland als geheel op basis van provincie grenzen. Dit bepaald het grid domain."
+	{
+		attribute<rdc_meter>  geometry (poly) := union_data(., geos_union_polygon(Provincie/geometry));
+	}
+	
+	// unit<uint32> Postcode6 
+	// :	StorageName     = "%SourceDataDir%/CBS/PC6_y2022.shp"
+	// ,	StorageType     = "gdal.vect"
+	// ,	StorageReadOnly = "True"
+	// , 	Descr           = "PC6 gebieden in 2022"
+	// {
+		// attribute<rdc_meter>              geometry  (polygon) ;
+		// attribute<string>           label                      	:= PC6;
+		// attribute<Postcode6>        grid      (NL_grid/domain) 	:= poly2grid(geometry, NL_grid/domain);
+		// attribute<bool>             IsMRA                       := IsDefined(point_in_polygon(centroid_or_mid(geometry), Brondata/Regios/Wijk/AmsterdamRegio/geometry));
+		
+		// unit<uint32> MRA := select_with_org_rel(IsMRA)
+		// {
+			// attribute<geography/rdc>       geometry  (poly) := ../geometry[org_rel];
+			// attribute<string>              label            := ../label[org_rel];
+		// }
+	// }
+	
+	// unit<uint32> Postcode6_areas 
+	// :	StorageName     = "%SourceDataDir%/CBS/pc6_tm2019_shp/pc6_xy_tm2020_areas.fss"
+	// ,	StorageReadOnly = "True"
+	// {
+		// attribute<geography/rdc>       geometry  (poly);
+		// attribute<geography/rdc>       centroid;
+		// attribute<string>               label;
+		// attribute<uint32>               Amsterdam_rel;
+		
+		// attribute<.>                    grid      (NL_grid/domain) 	:= poly2grid(geometry, NL_grid/domain);
+		
+		// unit<uint32> MRA := select_with_org_rel(IsDefined(Amsterdam_rel))
+		// {
+			// attribute<geography/rdc>       geometry  (poly) := ../geometry[org_rel];
+			// attribute<geography/rdc>       centroid         := ../centroid[org_rel];
+			// attribute<Buurten/src_2021>    buurt_rel        := point_in_polygon(centroid, Buurten/src_2021/geometry);
+			// attribute<string>              label            := ../label[org_rel], DialogType = "LabelText";
+		// }
+	// }
+}

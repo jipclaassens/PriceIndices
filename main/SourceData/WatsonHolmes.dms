@@ -1,0 +1,117 @@
+container WatsonHolmes
+{
+	parameter<string> ta_ca_areas := 'Set_TA12_CA_24_50000banen';
+
+	unit<uint32> BuyToLet
+	: StorageName = "%SourceDataDir%/Overig/BuyToLet Noord- Zuid Holland en Utrecht.csv"
+	, StorageType = "gdal.vect"
+	, StorageReadOnly = "true"
+	{
+		attribute<float32>        Latitude_degrees           := float32(substr(replace(laitude, '.', ''), 0, 2) + '.' + substr(replace(laitude, '.', ''), 2));
+		attribute<float32>        Longitude_degrees          := float32(substr(replace(longitude, '.', ''), 0, 1) + '.' + substr(replace(longitude, '.', ''), 1));
+		
+		attribute<float32>        x                          := pointcol(LatLongWgs842RD(point(Longitude_degrees, Latitude_degrees, wgs84_base), rdc));
+		attribute<float32>        y                          := pointrow(LatLongWgs842RD(point(Longitude_degrees, Latitude_degrees, wgs84_base), rdc));
+		
+		attribute<uint2>          noord_ta                   := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/noord_ta[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+		attribute<uint2>          noord_ca                   := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/noord_ca[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+
+		attribute<uint2>          noorderpark_ta             := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/noorderpark_ta[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+		attribute<uint2>          noorderpark_ca             := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/noorderpark_ca[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+
+		attribute<uint2>          centraal_ta                := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/centraal_ta[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+		attribute<uint2>          centraal_ca                := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/centraal_ca[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+
+		attribute<uint2>          rokin_ta                   := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/rokin_ta[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+		attribute<uint2>          rokin_ca                   := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/rokin_ca[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+
+		attribute<uint2>          vijzelgracht_ta            := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/vijzelgracht_ta[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+		attribute<uint2>          vijzelgracht_ca            := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/vijzelgracht_ca[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+
+		attribute<uint2>          depijp_ta                  := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/depijp_ta[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+		attribute<uint2>          depijp_ca                  := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/depijp_ca[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+
+		attribute<uint2>          europaplein_ta             := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/europaplein_ta[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+		attribute<uint2>          europaplein_ca             := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/europaplein_ca[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+
+		attribute<uint2>          zuid_ta                    := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/zuid_ta[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+		attribute<uint2>          zuid_ca                    := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/zuid_ca[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+	}
+	
+	unit<uint32> Huurtransacties
+	: StorageName = "%SourceDataDir%/Overig/Huurtransacties Noord- Zuid Holland en Utrecht 12-22.csv" 
+	, StorageType = "gdal.vect"
+	, StorageReadOnly = "true"
+	{
+		attribute<string>         latitude_full              := latitude == '' ? latitude_n : latitude;
+		attribute<string>         longitude_full             := longitude == '' ? longitude_n : longitude;
+	
+		attribute<float32>        Latitude_degrees           := float32(substr(replace(latitude_full, '.', ''), 0, 2) + '.' + substr(replace(latitude_full, '.', ''), 2));
+		attribute<float32>        Longitude_degrees          := float32(substr(replace(longitude_full, '.', ''), 0, 1) + '.' + substr(replace(longitude_full, '.', ''), 1));
+		
+		attribute<float32>        x                          := pointcol(LatLongWgs842RD(point(Longitude_degrees, Latitude_degrees, wgs84_base), rdc));
+		attribute<float32>        y                          := pointrow(LatLongWgs842RD(point(Longitude_degrees, Latitude_degrees, wgs84_base), rdc));
+		
+		attribute<uint2>          noord_ta                   := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/noord_ta[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+		attribute<uint2>          noord_ca                   := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/noord_ca[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+
+		attribute<uint2>          noorderpark_ta             := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/noorderpark_ta[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+		attribute<uint2>          noorderpark_ca             := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/noorderpark_ca[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+
+		attribute<uint2>          centraal_ta                := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/centraal_ta[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+		attribute<uint2>          centraal_ca                := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/centraal_ca[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+
+		attribute<uint2>          rokin_ta                   := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/rokin_ta[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+		attribute<uint2>          rokin_ca                   := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/rokin_ca[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+
+		attribute<uint2>          vijzelgracht_ta            := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/vijzelgracht_ta[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+		attribute<uint2>          vijzelgracht_ca            := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/vijzelgracht_ca[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+
+		attribute<uint2>          depijp_ta                  := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/depijp_ta[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+		attribute<uint2>          depijp_ca                  := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/depijp_ca[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+
+		attribute<uint2>          europaplein_ta             := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/europaplein_ta[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+		attribute<uint2>          europaplein_ca             := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/europaplein_ca[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+
+		attribute<uint2>          zuid_ta                    := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/zuid_ta[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+		attribute<uint2>          zuid_ca                    := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/zuid_ca[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+	}
+
+	unit<uint32> Huurontwikkeling
+	: StorageName = "%SourceDataDir%/Overig/VU Amsterdam - 2022 - Huurontwikkeling (Noord-Holland Zuid-Holland  Utrecht).csv"
+	, StorageType = "gdal.vect"
+	, StorageReadOnly = "true"
+	{
+		// attribute<rdc_meter>            geometry                   := point(x, y, rdc);
+		
+		attribute<float32>        x                          := pointcol(LatLongWgs842RD(point(float32(Longitude), float32(Latitude), wgs84_base), rdc));
+		attribute<float32>        y                          := pointrow(LatLongWgs842RD(point(float32(Longitude), float32(Latitude), wgs84_base), rdc));
+		
+		attribute<uint2>          noord_ta                   := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/noord_ta[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+		attribute<uint2>          noord_ca                   := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/noord_ca[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+
+		attribute<uint2>          noorderpark_ta             := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/noorderpark_ta[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+		attribute<uint2>          noorderpark_ca             := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/noorderpark_ca[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+
+		attribute<uint2>          centraal_ta                := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/centraal_ta[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+		attribute<uint2>          centraal_ca                := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/centraal_ca[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+
+		attribute<uint2>          rokin_ta                   := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/rokin_ta[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+		attribute<uint2>          rokin_ca                   := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/rokin_ca[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+
+		attribute<uint2>          vijzelgracht_ta            := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/vijzelgracht_ta[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+		attribute<uint2>          vijzelgracht_ca            := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/vijzelgracht_ca[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+
+		attribute<uint2>          depijp_ta                  := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/depijp_ta[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+		attribute<uint2>          depijp_ca                  := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/depijp_ca[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+
+		attribute<uint2>          europaplein_ta             := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/europaplein_ta[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+		attribute<uint2>          europaplein_ca             := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/europaplein_ca[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+
+		attribute<uint2>          zuid_ta                    := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/zuid_ta[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+		attribute<uint2>          zuid_ca                    := ='/Analyse/TreatmentControlAreas/'+ta_ca_areas+'/zuid_ca[point(x, y, rdc)[Geography/NL_grid/domain]][uint2]';
+	}
+	
+	
+
+}

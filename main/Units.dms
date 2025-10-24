@@ -1,0 +1,34 @@
+container Units
+{
+	unit<int16>     jaar;
+	unit<float32>  	meter           := baseunit('m', float32);
+	unit<Float32> cm := 0.01 * meter;
+	unit<float32>  	km              := 1000f * meter;
+	unit<float32>   meter2          := meter * meter;
+	unit<float32>   km2             := km * km;
+	unit<int32>     nrwoningen;
+	unit<float32>  	ha              := 10000f * meter2              , label = "hectare";
+	unit<float32>   nrwonha         := nrwoningen / ha;
+	unit<float32>   eur;
+	
+	unit<Float32> s   := BaseUnit('s', float32),   Label = "second", Descr = "SI base unit for time";
+	unit<Float32> sec := BaseUnit('s', float32);
+	unit<Float32> min := 60 * sec;
+	
+	unit<Float64> meter_f64 := BaseUnit('m', float64);
+	unit<Float64> meter2_f64   := meter_f64 * meter_f64;
+	
+	unit<Float32> m2_Vbo           := meter2 / Verblijfsobject;
+	unit<Float32> Verblijfsobject := BaseUnit('VBO', float32);
+	unit<UInt16>  yr  := BaseUnit('Yr', UInt16);
+	unit<Float32> m2PandFootprint  := meter2;
+	
+	unit<String>  string_t;
+	unit<Float32> float32_t;
+	unit<Bool>    bool_t;
+	unit<UInt2>   uint2_t;
+	unit<UInt8>   uint8_t;
+	unit<UInt16>  UInt16_t;
+	unit<UInt32>  uint32_t;
+}
+

@@ -1,0 +1,34 @@
+container Diversen
+{
+	attribute<Float32> UAI_2021 (rdc_100m)
+	:	StorageName     = "%RSo_DataDir%/Omgeving/UAI_2021.tif"
+	,	StorageType     = "gdal.grid"
+	,	Descr           = "https://github.com/ObjectVision/GeoDMS/wiki/Urban-Attractivity-Index"
+	,	StorageReadOnly = "True"
+	,	Descr           = "Urban Attractivity Index (UAI) is een samengestelde index die de aantrekkelijkheid van stedelijke gebieden meet op basis van verschillende factoren zoals bereikbaarheid, voorzieningen, leefomgeving en economische activiteit. De UAI wordt gebruikt om inzicht te krijgen in de kwaliteit en aantrekkelijkheid van stedelijke gebieden voor bewoners, bedrijven en bezoekers. Hogere UAI-waarden duiden op een hogere aantrekkelijkheid van het gebied.";
+	
+	attribute<uint32>  UAi_2021_int (rdc_100m) := uint32(UAI_2021 * 100f);
+	
+	attribute<sec> Reistijd_500k_inw_2020_NL (rdc_100m)
+	:	StorageName     = "%RSo_DataDir%/Omgeving/Reistijd500kInw_2020_500m_NL.tif"
+	,	Descr           = "Jip Claassens - Reistijd per auto over het OpenStreetMap-autonetwerk NL/BE/DE van 3 aug 2021 naar 500.000 inwoners op basis van de CBS Vierkanten van 1 januari 2020 naar 500m punten"
+	,	StorageType     = "gdal.grid"
+	,	StorageReadOnly = "True";
+	
+	attribute<min> Reistijd_Trainstation_2006_min (rdc_100m)
+	: StorageName = "%RSo_DataDir%/Omgeving/reistijd_minuten_station_2006.tif"
+	, Descr           = "Reistijd per auto naar het dichtstbijzijnde NS station in 2006"
+	, StorageReadOnly = "True";
+	
+	attribute<min> tt_Trainstation_2006_min     (rdc_100m) := Reistijd_Trainstation_2006_min == 0[min] ? (0/0)[min] : Reistijd_Trainstation_2006_min
+	, Descr = "Reistijd naar dichtstbijzijnde station in minuten, undefined wanneer reistijd 0 is"
+	{
+		attribute<Bool> IsKleinerDan5Minuten (rdc_100m) := . < 5[min];
+	}
+	
+	attribute<min> tt_500kinhab_min_2020 (rdc_100m) :=
+		convert(MakeDefined(Reistijd_500k_inw_2020_NL, max(Reistijd_500k_inw_2020_NL)), min) > 120[min]
+			? 120[min] 
+			: convert(MakeDefined(Reistijd_500k_inw_2020_NL, max(Reistijd_500k_inw_2020_NL)), min), Descr = "Reistijd naar 500.000 inwoners, gemaximeerd op 120 minuten";
+
+}

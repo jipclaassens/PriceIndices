@@ -1,0 +1,33 @@
+container PriceIndices
+{
+	container ModelParameters : using = "units"
+	{
+		parameter<string> nvm_filedate       := '20251024';  //20250520 20240926
+		parameter<string> Regio_jaar         := '2023';
+		
+		
+		parameter<UInt32>    BAG_RecentYear                :=  2025, Descr = "Wat is het meest recent beschikbare jaar van de BAG";
+		parameter<String>    BAG_file_date                 := '20250710', Descr = "Welke bestandsdatum van BAG moet worden gebruikt";
+		parameter<Bool>      BAG_WP5_rel_Ontkoppeld        := TRUE, Descr = "Voor debug doeleinden; tijdens het debuggen is het onhandig om telkens dit te laten uitrekenen. Normaal moet dit dus op FALSE stsaan. Het wordt overigens slechts in de LD ontkoppeld.";
+		parameter<meter>     Hoogbouwgrens                 := 15[meter], Descr = "De hoogte van een woongebouw vanaf waar we het hoogbouw noemen. Bron: expert judgement PBL"; 
+		container BAG_woonpand_Typering
+		: Descr = "Technische instellingen om de woonpand typering on the fly te kunnen berekenen met de beste performance. Zie afweging in de URL"
+		, URL   = "https://github.com/ObjectVision/GeoDMS/issues/816#issuecomment-2426041271"
+		{
+			parameter<UInt32>  nr_x_tiles         :=  50, Descr = ""; //oude setting 7   
+			parameter<UInt32>  nr_y_tiles         :=  50, Descr = ""; //oude setting 13
+			parameter<Float64> inflate_size       := 0.2d, Descr = "Inflate van panden in meters om overlap te detecteren (e.g. bepaling rijtjeswoningen)"; 
+		}
+	}
+	
+	
+	#include <Units.dms>
+	#include <Classifications.dms>
+	#include <Geography.dms>
+	#include <SourceData.dms>
+	#include <Analyse.dms>
+	
+	#include <ExportSettings.dms>
+	#include <ConfigSettings.dms>
+	
+}
