@@ -19,7 +19,7 @@ cfg$tag <- "20260711"
 
 ## -- databronnen (OneDrive-projectmap, machine-onafhankelijk gezocht) --------
 cfg$dir_project <- {
-  cand <- c("C:/Users/Jip/OneDrive - Objectvision",
+  cand <- c("D:/OneDrive - Objectvision",             # OVSRV06 (C:-variant is een dode oude root)
             "C:/Users/JipClaassens/OneDrive - Objectvision",
             "D:/OneDrive/OneDrive - Objectvision")
   hit <- cand[dir.exists(cand)]
@@ -41,8 +41,11 @@ cfg$dir_geocode_src <- {
 }
 
 ## -- canonieke ruwe bronbestanden --------------------------------------------
+# eerste bestaand pad wint: bestanden zijn bij de archivering (juli 2026) hernoemd
+kies_bestaand <- function(paden) { hit <- paden[file.exists(paden)]; if (length(hit)) hit[1] else paden[1] }
 # oud NVM-format, 1985-2021 (obj_hid_*-namen, geen coordinaten)
-cfg$file_raw_pre2022  <- file.path(cfg$dir_bron, "Archief/nvm19852021_raw.dta")
+cfg$file_raw_pre2022  <- kies_bestaand(file.path(cfg$dir_bron,
+  c("NVM_1985_2021_raw.dta", "Archief/nvm19852021_raw.dta")))
 # nieuw Brainbay-format, 2000-2023 (nvm20082022_raw_20240416.dta is hier een subset van)
 cfg$file_raw_post2022 <- file.path(cfg$dir_bron, "NVM_2000_2023_raw.dta")
 
