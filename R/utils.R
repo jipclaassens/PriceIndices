@@ -46,11 +46,27 @@ sanitize_utf8 <- function(x) {
   x
 }
 
+# HTML-entities uit brondata decoderen ("&apos;s-Hertogenbosch", "&#X27;S-GRAVENHAGE");
+# de puntkomma in een entity brak bovendien CSV-parsing met quote="" verderop
+decode_html_entities <- function(x) {
+  heeft <- grepl("&", x, fixed = TRUE)
+  heeft[is.na(heeft)] <- FALSE
+  if (!any(heeft)) return(x)
+  y <- x[heeft]
+  for (p in list(c("&apos;", "'"), c("&#39;", "'"), c("&#x27;", "'"), c("&#X27;", "'"),
+                 c("&quot;", "\""), c("&#34;", "\""),
+                 c("&lt;", "<"), c("&gt;", ">"), c("&amp;", "&"))) {
+    y <- gsub(p[1], p[2], y, fixed = TRUE)
+  }
+  x[heeft] <- y
+  x
+}
+
 # Huisnummertoevoeging: hoofdletters, junktekens en woordjes eruit.
 # Bewuste afwijking van Stata: Stata verwijderde ALLE nullen (waardoor "10" -> "1");
 # hier strippen we alleen voorloopnullen ("01" -> "1", "10" blijft "10").
 clean_toevoeging <- function(x) {
-  x <- toupper(sanitize_utf8(x))
+  x <- toupper(decode_html_entities(sanitize_utf8(x)))
   x[x %in% c("ONG", "ONBEKEND")] <- ""
   x <- gsub("-", "", x, fixed = TRUE)
   x <- gsub("!", "", x, fixed = TRUE)
@@ -81,8 +97,14 @@ clean_postcode <- function(x) {
 }
 
 clean_straatnaam <- function(x) {
-  x <- sanitize_utf8(x)
-  x <- gsub("[;&#.,*|]", "", x)
+  x <- decode_html_entities(sanitize_utf8(x))
+  x <- gsub("[;&#.,*|\"]", "", x)
+  x[is.na(x)] <- ""
+  x
+}
+
+clean_woonplaats <- function(x) {
+  x <- trimws(decode_html_entities(sanitize_utf8(x)))
   x[is.na(x)] <- ""
   x
 }

@@ -40,6 +40,7 @@ drop_stat("kamers > max of NA",  is.na(d$nkamers) | d$nkamers > cfg$maxrooms)
 d[, huisnummertoevoeging := clean_toevoeging(huisnummertoevoeging)]
 d[, postcode             := clean_postcode(postcode)]
 d[, straatnaam           := clean_straatnaam(straatnaam)]
+d[, woonplaats           := clean_woonplaats(woonplaats)]
 d[!is.na(huisnummer) & huisnummer == 0, huisnummer := NA]
 
 ## ---------------------------------------------------------------------------

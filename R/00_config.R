@@ -80,8 +80,18 @@ cfg$seed             <- 20260711
 # CSV-kopieën van de geschoonde set naar OneDrive/EnhancedData schrijven (groot, sync!)
 cfg$write_onedrive_exports <- FALSE
 
+## -- geocodering (stap 04a) ------------------------------------------------------
+# resultaat van de BAG-Tools-geocoder (draait op de machine met E:/SourceData)
+cfg$file_geocoded <- file.path(cfg$dir_project, "Temp",
+                               sprintf("NVM_adressen_%s_Geocoded.csv", cfg$tag))
+# strengste matchniveau dat nog meegaat de analyse in: 13 = t/m PC6-niveau
+# (1-10 = huisnummer-niveau, 11-12 = straat, 13 = PC6, 14+ = PC5/PC4/woonplaats).
+# De oude Stata-flow filterde hier niet op; sensitiviteit (bv. <=10) via specs.
+cfg$geocode_max_niveau <- 13L
+
 ## -- afgeleide bestandsnamen ----------------------------------------------------
 cfg$file_01_merged  <- file.path(cfg$dir_work, sprintf("01_merged_%s.rds", cfg$tag))
 cfg$file_02_cleaned <- file.path(cfg$dir_work, sprintf("02_cleaned_%s.rds", cfg$tag))
 cfg$file_03_geocode <- file.path(cfg$dir_geocode_src, sprintf("NVM_adressen_%s.csv", cfg$tag))
+cfg$file_04a_geocoded <- file.path(cfg$dir_work, sprintf("04a_geocoded_%s.rds", cfg$tag))
 cfg$file_04_analysis <- function(variant) file.path(cfg$dir_work, sprintf("04_analysis_%s_%s.rds", variant, cfg$tag))
