@@ -6,8 +6,8 @@ container PriceIndices
 		parameter<string> Regio_jaar         := '2023';
 		
 		
-		parameter<UInt32>    BAG_RecentYear                :=  2025, Descr = "Wat is het meest recent beschikbare jaar van de BAG";
-		parameter<String>    BAG_file_date                 := '20250710', Descr = "Welke bestandsdatum van BAG moet worden gebruikt";
+		parameter<UInt32>    BAG_RecentYear                :=  2026, Descr = "Wat is het meest recent beschikbare jaar van de BAG";
+		parameter<String>    BAG_file_date                 := '20260710', Descr = "Welke bestandsdatum van BAG moet worden gebruikt";
 		parameter<Bool>      BAG_WP5_rel_Ontkoppeld        := TRUE, Descr = "Voor debug doeleinden; tijdens het debuggen is het onhandig om telkens dit te laten uitrekenen. Normaal moet dit dus op FALSE stsaan. Het wordt overigens slechts in de LD ontkoppeld.";
 		parameter<meter>     Hoogbouwgrens                 := 15[meter], Descr = "De hoogte van een woongebouw vanaf waar we het hoogbouw noemen. Bron: expert judgement PBL"; 
 		container BAG_woonpand_Typering

@@ -567,23 +567,17 @@ container BAG : using = "Classifications"
 			unit<UInt32> vbo_domein := VBOs/vbo;
 			
 			unit<UInt32> Import
-			:	StorageName = "= Result_fss_dir + '/pand.fss'"
+			:	StorageName = "= Result_fss_dir + '/pand.mmd'"
 			,	StorageReadOnly = "True"
 			{
 				attribute<rdc_mm>                       geometry_mm            (poly);
 				attribute<rdc_mm>                       geometry_mm_simpl      (poly) := geos_buffer_multi_polygon(geometry_mm, 100d, 16b);
 				attribute<rdc_meter>                    geometry               (poly) := geometry_mm[rdc_meter], DisableStorage = "TRUE";
 				attribute<rdc_meter>                    geometry_simpl         (poly) := geometry_mm_simpl[rdc_meter], DisableStorage = "TRUE";
-				attribute<rdc_meter>                    geometry_inflated_20cm_dpoint (poly) : Descr = "tbv pand typering"; //use the geometry from src that is corrected for inverted winding order. 
-				// attribute<rdc_meter>                    geometry_inflated_20cm_dpoint (poly) := geos_buffer_multi_polygon(src/geometry, 0.2d, 4b), Descr = "tbv pand typering"; //use the geometry from src that is corrected for inverted winding order. 
-				attribute<rdc_meter>                    geometry_inflated_20cm (poly) := geometry_inflated_20cm_dpoint;
-				
+				attribute<rdc_meter>                    geometry_inflated_20cm (poly) := geos_buffer_multi_polygon(src/geometry, 0.2d, 4b), Descr = "tbv pand typering"; //use the geometry from src that is corrected for inverted winding order.
+
 				attribute<String>                       identificatie;
-				attribute<yr>                           Bouwjaar;
-				attribute<Bool>                         IsNederland; //                  := IsDefined(point_in_polygon(centroid_or_mid(geometry), /Geography/StudyAreas/rdc_Nederland/geometry));
-				attribute<Bool>                         IsFriesland; //                  := IsDefined(point_in_polygon(centroid_or_mid(geometry), /Geography/StudyAreas/rdc_Friesland/geometry));
-				attribute<Bool>                         IsUtrecht; //                    := IsDefined(point_in_polygon(centroid_or_mid(geometry), /Geography/StudyAreas/rdc_Utrecht/geometry));
-				attribute<Bool>                         IsNoord_Holland; //              := IsDefined(point_in_polygon(centroid_or_mid(geometry), /Geography/StudyAreas/rdc_Noord_Holland/geometry));
+				attribute<UInt16>                       Bouwjaar;
 
 				container meta := meta_src_template(., pand_status);
 			}
@@ -596,7 +590,7 @@ container BAG : using = "Classifications"
 				attribute<pand_status>                  status_rel                   := Import/meta/status_rel;
 				attribute<Int32>                        Begindatum                   := Impl/Begindatum0 < 19600101i ? Impl/TIJDSTIPREGISTRATIE : Impl/Begindatum0;
 				attribute<Int32>                        Einddatum                    := Impl/Einddatum0 < 19600101i ? Impl/EINDREGISTRATIE : Impl/Einddatum0;
-				attribute<yr>                           Bouwjaar                     := Import/Bouwjaar;
+				attribute<yr>                           Bouwjaar                     := Import/Bouwjaar[yr];
 				attribute<yr>                           Bouwjaar_trunc               := =replace(Bouwjaar_truncation_Expr, '@YYYY@', max_Bouwjaar);
 				attribute<m2PandFootprint>              Footprint                    := area(geometry, meter2_f64)[m2PandFootprint];
 				
@@ -658,14 +652,13 @@ container BAG : using = "Classifications"
 		{
 			//Import the source BAG files
 			unit<UInt32> Import
-			:	StorageName = "= Result_fss_dir + '/vbo.fss'"
+			:	StorageName = "= Result_fss_dir + '/vbo.mmd'"
 			,	StorageReadOnly = "True"
 			{
 				attribute<rdc_mm>                     geometry_mm;
 				attribute<rdc_meter>                  geometry  := geometry_mm[rdc_meter], DisableStorage = "TRUE";
 				attribute<String>                     identificatie;
 				attribute<Int32>                      oppervlakte;
-				attribute<String>                     nummeraanduiding_id;
 
 				unit<UInt32> gerelateerdPand
 				{
@@ -739,15 +732,9 @@ container BAG : using = "Classifications"
 
 			attribute<Int32>      Begindatum             (domain);
 			attribute<Int32>      Einddatum              (domain);
-			attribute<UInt32>     VOORKOMENidENTIFICATIE (domain); //een identificatienummer kan meerdere keren voorkomen. Dit is een volgnummer dat de versie weergeeft.
 
 			attribute<String>     TIJDSTIPREGISTRATIE    (domain);
 			attribute<String>     EINDREGISTRATIE        (domain);
-
-			attribute<Int32>      DOCUMENTDATUM          (domain);
-			attribute<String>     DOCUMENTNUMMER         (domain);
-
-			attribute<Bool>       IS_GECONSTATEERD       (domain);
 		}
 	}
 	
