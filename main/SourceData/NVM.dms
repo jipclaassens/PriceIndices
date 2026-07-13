@@ -1,8 +1,9 @@
 container NVM: using = "Units"
 {
-	parameter<string> nvm_filedate       := ModelParameters/nvm_filedate; 
-	// parameter<string> csv_filename       := '%SourceDataDir%/NVM/NVM_cleaned_'+nvm_filedate+'.csv';
-	parameter<string> csv_filename       := '%SourceDataDir%/NVM/NVM_1985_2023_cleaned_geocoded_'+nvm_filedate+'_slim.csv';
+	parameter<string> nvm_filedate       := ModelParameters/nvm_filedate;
+	parameter<string> dir := 'C:/Users/JipClaassens/OneDrive - Objectvision/VU/Projects/NVM Prijsindex/EnhancedData'; // OVSRV08
+	// parameter<string> dir := 'D:/OneDrive - Objectvision/VU/Projects/NVM Prijsindex/EnhancedData'; // OVSRV06
+	parameter<string> csv_filename       := dir+'/NVM_1985_2023_cleaned_geocoded_'+nvm_filedate+'_slim.csv';
 	parameter<string> fss_filename       := '%LocalDataDir%/NVM/nvm_'+nvm_filedate;
 
 	container TableChopper
@@ -20,7 +21,11 @@ container NVM: using = "Units"
 		
 		unit<uint32> field := Range(uint32, 0, strcount(headerline, fieldseparator) + 1)
 		{
-			attribute<string> name := ReadArray(headerline , field, string, 0);
+			attribute<string> name0 := ReadArray(headerline , field, string, 0);
+			attribute<string> name  := AsItemName(name0)
+			{
+				parameter<uint32> ReadPos := name0/ReadPos;
+			}
 		}
 			
 		attribute<string> bodylines (domain) := readLines(filedata, domain, headerline/ReadPos);
@@ -78,7 +83,27 @@ container NVM: using = "Units"
 	}
 	
 	
-	container Types_WP4 := 
+	container export_spatial
+	// batch-export van de spatial vars, gekoppeld op obsid (= trans_id uit de R-pipeline);
+	// draaien met: GeoDmsRun.exe main.dms /SourceData/NVM/export_spatial/bestand
+	{
+		container impl
+		{
+			parameter<string> sep      := ';';
+			parameter<string> Kopregel := 'obsid;uai_2021;tt_500k_inw_2020_min;tt_trainstation_2006_min;d_groennabij';
+			attribute<string> Body (Result) :=
+				  string(Result/obsid)
+				+ sep + MakeDefined(string(Result/UAI_2021), '')
+				+ sep + MakeDefined(string(Result/tt_500k_inw_2020_min), '')
+				+ sep + MakeDefined(string(Result/tt_trainstation_2006_min), '')
+				+ sep + MakeDefined(string(Result/d_groennabij), '');
+		}
+		parameter<string> bestand := impl/Kopregel + '\n' + AsList(impl/Body, '\n')
+		, StorageName = "=dir+'/NVM_1985_2023_cleaned_geocoded_'+nvm_filedate+'_slim_spatial.csv'"
+		, StorageType = "str";
+	}
+
+	container Types_WP4 :=
 		for_each_ne(
 			WP4/name
 			, 'TypeSubset_T('+quote(WP4/name_english)+')'

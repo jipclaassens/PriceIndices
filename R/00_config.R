@@ -94,4 +94,10 @@ cfg$file_01_merged  <- file.path(cfg$dir_work, sprintf("01_merged_%s.rds", cfg$t
 cfg$file_02_cleaned <- file.path(cfg$dir_work, sprintf("02_cleaned_%s.rds", cfg$tag))
 cfg$file_03_geocode <- file.path(cfg$dir_geocode_src, sprintf("NVM_adressen_%s.csv", cfg$tag))
 cfg$file_04a_geocoded <- file.path(cfg$dir_work, sprintf("04a_geocoded_%s.rds", cfg$tag))
+# slim-invoer voor de GeoDMS-spatial-pass (main/SourceData/NVM.dms leest dit uit EnhancedData)
+cfg$file_03b_slim <- file.path(cfg$dir_enhanced,
+                               sprintf("NVM_1985_2023_cleaned_geocoded_%s_slim.csv", cfg$tag))
+# resultaat van de spatial-pass (geschreven door /SourceData/NVM/export_spatial/bestand)
+cfg$file_spatial <- file.path(cfg$dir_enhanced,
+                              sprintf("NVM_1985_2023_cleaned_geocoded_%s_slim_spatial.csv", cfg$tag))
 cfg$file_04_analysis <- function(variant) file.path(cfg$dir_work, sprintf("04_analysis_%s_%s.rds", variant, cfg$tag))

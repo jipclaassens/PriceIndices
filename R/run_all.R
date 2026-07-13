@@ -12,7 +12,8 @@ stappen <- commandArgs(trailingOnly = TRUE)
 if (!length(stappen)) stappen <- c("1", "2", "3")
 
 scripts <- c(`1` = "01_merge_sources.R", `2` = "02_clean.R", `3` = "03_export_geocode.R",
-             `4a` = "04a_merge_geocode.R", `4` = "04_import_spatial.R", `5` = "05_estimate.R")
+             `4a` = "04a_merge_geocode.R", `3b` = "03b_export_spatial_input.R",
+             `4` = "04_import_spatial.R", `5` = "05_estimate.R")
 
 for (s in stappen) {
   if (is.na(scripts[s])) stop("Onbekende stap: ", s)

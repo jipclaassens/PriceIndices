@@ -2,7 +2,7 @@ container PriceIndices
 {
 	container ModelParameters : using = "units"
 	{
-		parameter<string> nvm_filedate       := '20251024';  //20250520 20240926
+		parameter<string> nvm_filedate       := '20260711';  //20251024 20250520 20240926
 		parameter<string> Regio_jaar         := '2023';
 		
 		
