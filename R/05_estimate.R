@@ -41,12 +41,17 @@ specs_alle <- list(
   # Eén modelset voor paper én RS (besluit 2026-07-13): #18 OV-knooppunt i.p.v.
   # station-2006, #19 UAI-2012-netwerk, #20 zonder groen. De RS gebruikt dus
   # dezelfde redev-bestanden; een aparte rs-spec bestaat niet meer.
-  redev       = maak_spec("redev",       "pipeline", c("lntt_500k", "lntt_ovknoop", "uai_2012"),
+  # Reistijd 500k inwoners: 2024-versie (native 100m-raster) i.p.v. de 2020-versie
+  # (500m-raster, opgerekt naar 100m -> GeoDMS factor-warning).
+  redev       = maak_spec("redev",       "pipeline", c("lntt_500k_2024", "lntt_ovknoop", "uai_2012"),
+                          onbekend_dummies = TRUE),
+  # sensitiviteit: identiek aan redev, maar met de oude 2020-reistijd
+  redev_tt2020 = maak_spec("redev_tt2020", "pipeline", c("lntt_500k", "lntt_ovknoop", "uai_2012"),
                           onbekend_dummies = TRUE),
   # limit-variant (alleen lnsize als objectkenmerk) heeft geen actieve afnemer meer:
   # RS leest hem niet en Redevelopment gebruikt vol model + reg_*-regiogemiddelden.
   # Alleen draaien als sensitiviteit: specs_actief <- "redev_limit"
-  redev_limit = maak_spec("redev_limit", "pipeline", c("lntt_500k", "lntt_ovknoop", "uai_2012"),
+  redev_limit = maak_spec("redev_limit", "pipeline", c("lntt_500k_2024", "lntt_ovknoop", "uai_2012"),
                           limit = TRUE, onbekend_dummies = TRUE)
 )
 if (!exists("specs_actief")) specs_actief <- "redev"

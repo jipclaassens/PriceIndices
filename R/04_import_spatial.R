@@ -50,12 +50,15 @@ if (variant_04 == "legacy") {
   ri_log("Lees spatial vars: %s", cfg$file_spatial)
   sp <- fread(cfg$file_spatial, sep = ";", na.strings = c("", "null", "NULL"))
   nodig <- c("obsid", "uai_2021", "uai_2012_network", "tt_500k_inw_2020_min",
-             "tt_trainstation_2006_min", "tt_OVknooppunten_2026_min", "d_groennabij")
+             "tt_500k_inw_2024_min", "tt_trainstation_2006_min",
+             "tt_OVknooppunten_2026_min", "d_groennabij")
   weg <- setdiff(nodig, names(sp))
   if (length(weg)) stop("Spatial-CSV mist kolommen: ", paste(weg, collapse = ", "))
   setnames(sp, c("uai_2021", "uai_2012_network", "tt_500k_inw_2020_min",
-                 "tt_trainstation_2006_min", "tt_OVknooppunten_2026_min"),
-               c("uai", "uai_2012", "tt_500k_min", "tt_station_min", "tt_ovknoop_min"))
+                 "tt_500k_inw_2024_min", "tt_trainstation_2006_min",
+                 "tt_OVknooppunten_2026_min"),
+               c("uai", "uai_2012", "tt_500k_min", "tt_500k_2024_min",
+                 "tt_station_min", "tt_ovknoop_min"))
   if (anyDuplicated(sp$obsid)) stop("obsid niet uniek in spatial-CSV")
 
   n0 <- nrow(a)
@@ -80,7 +83,9 @@ a[!is.na(bouwjaar) & bouwjaar < 1600, bouwjaar := 1600]
 a[!is.na(lotsize)  & lotsize >= 99999, lotsize := NA]
 a[!is.na(tt_station_min) & tt_station_min < 1, tt_station_min := 1]
 a[!is.na(lotsize)  & lotsize == 0, lotsize := 1]
-if ("tt_ovknoop_min" %in% names(a)) a[!is.na(tt_ovknoop_min) & tt_ovknoop_min < 1, tt_ovknoop_min := 1]
+for (v in intersect(c("tt_ovknoop_min", "tt_500k_2024_min"), names(a))) {
+  a[!is.na(get(v)) & get(v) < 1, (v) := 1]   # log-transform: minimaal 1 minuut
+}
 
 ## ---------------------------------------------------------------------------
 ## Afgeleide variabelen
@@ -91,7 +96,8 @@ a[, lnlotsize    := log(lotsize)]
 a[, lntt_500k    := log(tt_500k_min)]
 a[, lntt_station := log(tt_station_min)]
 a[, pricem2      := price / size]
-if ("tt_ovknoop_min" %in% names(a)) a[, lntt_ovknoop := log(tt_ovknoop_min)]
+if ("tt_ovknoop_min" %in% names(a))   a[, lntt_ovknoop   := log(tt_ovknoop_min)]
+if ("tt_500k_2024_min" %in% names(a)) a[, lntt_500k_2024 := log(tt_500k_2024_min)]
 
 # bouwperiode: 8 klassen; referentie (baseline) is 'va2002'
 a[, bouwperiode := cut(bouwjaar,
