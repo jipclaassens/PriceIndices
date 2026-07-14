@@ -26,9 +26,11 @@ outputnamen, zodat oude bestanden (o.a. de door RS gebruikte
 
 Een schattingsvariant is een spec (naam, invoerset, locatievariabelen,
 sampleperiode, wel/niet `limit`). `rsval`/`rsval_limit` reproduceren de
-Stata-run van 20251024 (validatie; zie `99_validate_vs_stata.R`). De
-redev-paper-spec komt erbij zodra GitHub-issues Redevelopment#18 (OV-knooppunt),
-#19 (UAI 2012) en #20 (herschatting zonder groen) in de GeoDMS-kant zitten.
+Stata-run van 20251024 (validatie; zie `99_validate_vs_stata.R`; bevroren
+ijkpunt). `redev`/`redev_limit` is **de** actieve modelset — voor het
+densification-paper én de RuimteScanner (besluit 2026-07-13: geen aparte
+rs-spec): Redevelopment#18 `lntt_ovknoop`, #19 `uai_2012` (netwerkafstand),
+#20 zonder groen, plus `d_hoogte_onbekend`-dummy bij appartementen.
 
 ## Output-format estimates
 

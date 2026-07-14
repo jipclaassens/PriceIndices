@@ -38,18 +38,15 @@ specs_alle <- list(
   rsval       = maak_spec("rsval",       "legacy", c("lntt_500k", "lntt_station", "uai", "d_groennabij")),
   rsval_limit = maak_spec("rsval_limit", "legacy", c("lntt_500k", "lntt_station", "uai", "d_groennabij"),
                           limit = TRUE),
-  # RS-opvolger op de nieuwe pipeline-data (zelfde covariaten als voorheen)
-  rs          = maak_spec("rs",          "pipeline", c("lntt_500k", "lntt_station", "uai", "d_groennabij"),
-                          onbekend_dummies = TRUE),
-  rs_limit    = maak_spec("rs_limit",    "pipeline", c("lntt_500k", "lntt_station", "uai", "d_groennabij"),
-                          limit = TRUE, onbekend_dummies = TRUE),
-  # Redev-paper: #18 OV-knooppunt i.p.v. station-2006, #19 UAI-2012-netwerk, #20 zonder groen
+  # Eén modelset voor paper én RS (besluit 2026-07-13): #18 OV-knooppunt i.p.v.
+  # station-2006, #19 UAI-2012-netwerk, #20 zonder groen. De RS gebruikt dus
+  # dezelfde redev-bestanden; een aparte rs-spec bestaat niet meer.
   redev       = maak_spec("redev",       "pipeline", c("lntt_500k", "lntt_ovknoop", "uai_2012"),
                           onbekend_dummies = TRUE),
   redev_limit = maak_spec("redev_limit", "pipeline", c("lntt_500k", "lntt_ovknoop", "uai_2012"),
                           limit = TRUE, onbekend_dummies = TRUE)
 )
-if (!exists("specs_actief")) specs_actief <- c("rs", "rs_limit", "redev", "redev_limit")
+if (!exists("specs_actief")) specs_actief <- c("redev", "redev_limit")
 
 ## ---------------------------------------------------------------------------
 ## Schatting
