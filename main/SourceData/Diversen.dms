@@ -24,6 +24,12 @@ container Diversen
 	,	StorageType     = "gdal.grid"
 	,	StorageReadOnly = "True";
 	
+	attribute<sec> TraveltimeTo500k_Population_2024 (rdc_100m)
+	:	StorageName     = "%RSo_DataDir%/Omgeving/TraveltimeTo500k_Population_2024_From_100m_Points.tif"
+	,	Descr           = "Jip Claassens - Reistijd per auto over het OpenStreetMap-autonetwerk NL/BE/DE van 10 december 2025 naar 500.000 inwoners op basis van de CBS Vierkanten van 1 januari 2024 naar 100m punten"
+	,	StorageType     = "gdal.grid"
+	,	StorageReadOnly = "True";
+	
 	attribute<min> Reistijd_Trainstation_2006_min (rdc_100m)
 	: StorageName = "%RSo_DataDir%/Omgeving/reistijd_minuten_station_2006.tif"
 	, Descr           = "Reistijd per auto naar het dichtstbijzijnde NS station in 2006"
