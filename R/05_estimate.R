@@ -43,10 +43,13 @@ specs_alle <- list(
   # dezelfde redev-bestanden; een aparte rs-spec bestaat niet meer.
   redev       = maak_spec("redev",       "pipeline", c("lntt_500k", "lntt_ovknoop", "uai_2012"),
                           onbekend_dummies = TRUE),
+  # limit-variant (alleen lnsize als objectkenmerk) heeft geen actieve afnemer meer:
+  # RS leest hem niet en Redevelopment gebruikt vol model + reg_*-regiogemiddelden.
+  # Alleen draaien als sensitiviteit: specs_actief <- "redev_limit"
   redev_limit = maak_spec("redev_limit", "pipeline", c("lntt_500k", "lntt_ovknoop", "uai_2012"),
                           limit = TRUE, onbekend_dummies = TRUE)
 )
-if (!exists("specs_actief")) specs_actief <- c("redev", "redev_limit")
+if (!exists("specs_actief")) specs_actief <- "redev"
 
 ## ---------------------------------------------------------------------------
 ## Schatting
