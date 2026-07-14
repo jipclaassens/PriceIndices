@@ -4,3 +4,4 @@
 *.Rproj
 temp/
 *.log
+/.vs
