@@ -18,17 +18,24 @@ if (!exists(".ri_script_dir")) {
 source(file.path(.ri_script_dir, "00_config.R"))
 
 ## ---------------------------------------------------------------------------
-## 1. Inlezen (op positie; zie kolomlayout in de kop van dit script)
+## 1. Inlezen — header-gestuurd, want de BAG-Tools-export is over versies heen
+##    veranderd (niveau_code -> level_code; trailing ';' verdwenen per 2026-07)
 ## ---------------------------------------------------------------------------
 ri_log("Lees geocodeerresultaat: %s", cfg$file_geocoded)
+kop <- strsplit(readLines(cfg$file_geocoded, n = 1L), ";", fixed = TRUE)[[1]]
+kop[kop == "level_code"] <- "niveau_code"
+sel <- c(geocode_id = "geocode_id", echo_huisnummer = "huisnummer", echo_postcode = "postcode",
+         buurt_code = "buurt_code", wijk_code = "wijk_code", gemeente_code = "gemeente_code",
+         niveau_code = "niveau_code", x = "X", y = "Y", n_bag_matches = "count",
+         xy_variantie = "var", nummeraanduiding_id = "nummeraanduiding_id",
+         bag_pand_footprint = "bag_pand_footprint", bag_vbo_oppervlak = "bag_vbo_oppervlak",
+         bag_pand_bouwjaar = "bag_pand_bouwjaar", bag_pand_hoogte = "bag_pand_hoogte")
+pos <- match(sel, kop)
+if (anyNA(pos)) stop("Geocodeer-CSV mist kolommen: ", paste(sel[is.na(pos)], collapse = ", "))
+volgorde <- order(pos)
 geo <- suppressWarnings(fread(cfg$file_geocoded, sep = ";", header = FALSE, skip = 1,
-    select = c(1, 3, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 22, 23, 24, 25),
-    na.strings = c("", "null", "NULL")))
-setnames(geo, c("geocode_id", "echo_huisnummer", "echo_postcode",
-                "buurt_code", "wijk_code", "gemeente_code",
-                "niveau_code", "x", "y", "n_bag_matches", "xy_variantie",
-                "nummeraanduiding_id", "bag_pand_footprint", "bag_vbo_oppervlak",
-                "bag_pand_bouwjaar", "bag_pand_hoogte"))
+                              select = pos[volgorde], na.strings = c("", "null", "NULL")))
+setnames(geo, names(sel)[volgorde])
 if (anyDuplicated(geo$geocode_id)) stop("geocode_id niet uniek in geocodeerresultaat")
 ri_log("  %s rijen", format(nrow(geo), big.mark = ","))
 
