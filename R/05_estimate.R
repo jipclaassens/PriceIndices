@@ -115,7 +115,7 @@ info <- rbindlist(modelinfo)
 info_bestand <- file.path(cfg$dir_output, sprintf("Estimates_%s_modelinfo.csv", cfg$tag))
 if (file.exists(info_bestand)) {
   # regels van eerder gedraaide specs behouden; nu-gedraaide overschrijven
-  oud <- fread(info_bestand, sep = ";")
+  oud <- fread(info_bestand, sep = ";", colClasses = list(character = "run_datum"))
   info <- rbindlist(list(oud[!info, on = .(spec, housing_type)], info),
                     use.names = TRUE, fill = TRUE)
   setorder(info, spec, housing_type)
