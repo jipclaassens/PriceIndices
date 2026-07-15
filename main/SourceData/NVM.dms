@@ -73,12 +73,14 @@ container NVM: using = "Units"
 		attribute<uint16>        bag_pand_hoogte       := NVM_Data/bag_pand_hoogte[uint16];
 		attribute<uint32>        d_highrise            := uint32(bag_pand_hoogte >= uint16(ModelParameters/Hoogbouwgrens[cm]));
 		
+		// legacy vars (rsval-ijkpunt): int-truncatie behouden zoals bij de 20251024-run
 		attribute<uint32>        UAI_2021                  := SourceData/Diversen/UAi_2021_int[rdc_100m_rel];
-		attribute<uint32>        UAI_2012_network          := SourceData/Diversen/UAI_2012_netwerk_geschaald_int[rdc_100m_rel];
 		attribute<uint32>        tt_500k_inw_2020_min      := uint32(SourceData/Diversen/tt_500kinhab_min_2020[rdc_100m_rel]);
-		attribute<uint32>        tt_500k_inw_2024_min      := uint32(SourceData/Diversen/tt_500kinhab_min_2024[rdc_100m_rel]);
 		attribute<uint32>        tt_trainstation_2006_min  := uint32(SourceData/Diversen/tt_Trainstation_2006_min[rdc_100m_rel]);
-		attribute<uint32>        tt_OVknooppunten_2026_min := uint32(SourceData/Diversen/Reistijd_OVknooppunten_min[rdc_100m_rel]);
+		// actieve redev/RS-vars: float, zonder truncatie (besluit 2026-07-15)
+		attribute<float32>       UAI_2012_network          := SourceData/Diversen/UAI_2012_netwerk_x100[rdc_100m_rel];
+		attribute<float32>       tt_500k_inw_2024_min      := value(SourceData/Diversen/tt_500kinhab_min_2024[rdc_100m_rel], float32);
+		attribute<float32>       tt_OVknooppunten_2026_min := value(SourceData/Diversen/Reistijd_OVknooppunten_min[rdc_100m_rel], float32);
 		attribute<uint2>         d_groennabij              := uint2(/SourceData/BBG/Dominant/BBG_groen_buff[rdc_10m_rel]);
 
 		attribute<rdc_10m>       rdc_10m_rel              := geometry[rdc_10m], DisableStorage = "true";
