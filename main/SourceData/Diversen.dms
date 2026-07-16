@@ -16,7 +16,9 @@ container Diversen
 	,	StorageReadOnly = "True"
 	,	Descr           = "Urban Attractivity Index (UAI) is een samengestelde index die de aantrekkelijkheid van stedelijke gebieden meet op basis van verschillende factoren zoals bereikbaarheid, voorzieningen, leefomgeving en economische activiteit. De UAI wordt gebruikt om inzicht te krijgen in de kwaliteit en aantrekkelijkheid van stedelijke gebieden voor bewoners, bedrijven en bezoekers. Hogere UAI-waarden duiden op een hogere aantrekkelijkheid van het gebied.";
 	
-	attribute<uint32>  UAI_2012_netwerk_geschaald_int (rdc_100m) := uint32(UAI_2012_netwerk_geschaald * 100f);
+	// x100 voor leesbare coefficienten; float, geen int-truncatie (besluit 2026-07-15):
+	// truncatie voegde alleen kwantisatieruis toe en RS past de coefficient op floats toe
+	attribute<float32> UAI_2012_netwerk_x100 (rdc_100m) := UAI_2012_netwerk_geschaald * 100f;
 	
 	attribute<sec> Reistijd_500k_inw_2020_NL (rdc_100m)
 	:	StorageName     = "%RSo_DataDir%/Omgeving/Reistijd500kInw_2020_500m_NL.tif"
@@ -45,6 +47,11 @@ container Diversen
 		convert(MakeDefined(Reistijd_500k_inw_2020_NL, max(Reistijd_500k_inw_2020_NL)), min) > 120[min]
 			? 120[min] 
 			: convert(MakeDefined(Reistijd_500k_inw_2020_NL, max(Reistijd_500k_inw_2020_NL)), min), Descr = "Reistijd naar 500.000 inwoners, gemaximeerd op 120 minuten";
+			
+	attribute<min> tt_500kinhab_min_2024 (rdc_100m) :=
+		convert(MakeDefined(TraveltimeTo500k_Population_2024, max(TraveltimeTo500k_Population_2024)), min) > 120[min]
+			? 120[min] 
+			: convert(MakeDefined(TraveltimeTo500k_Population_2024, max(TraveltimeTo500k_Population_2024)), min), Descr = "Reistijd naar 500.000 inwoners, gemaximeerd op 120 minuten";
 
 	attribute<min> Reistijd_OVknooppunten_min (rdc_100m)
 	: StorageName = "%RSo_DataDir%/Omgeving/TraveltimeToNearest_OV_Knooppunten_20260316_100m.tif"

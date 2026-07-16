@@ -1,8 +1,8 @@
 container NVM: using = "Units"
 {
 	parameter<string> nvm_filedate       := ModelParameters/nvm_filedate;
-	parameter<string> dir := 'C:/Users/JipClaassens/OneDrive - Objectvision/VU/Projects/NVM Prijsindex/EnhancedData'; // OVSRV08
-	// parameter<string> dir := 'D:/OneDrive - Objectvision/VU/Projects/NVM Prijsindex/EnhancedData'; // OVSRV06
+	// parameter<string> dir := 'C:/Users/JipClaassens/OneDrive - Objectvision/VU/Projects/NVM Prijsindex/EnhancedData'; // OVSRV08
+	parameter<string> dir := 'D:/OneDrive - Objectvision/VU/Projects/NVM Prijsindex/EnhancedData'; // OVSRV06
 	parameter<string> csv_filename       := dir+'/NVM_1985_2023_cleaned_geocoded_'+nvm_filedate+'_slim.csv';
 	parameter<string> fss_filename       := '%LocalDataDir%/NVM/nvm_'+nvm_filedate;
 
@@ -73,11 +73,14 @@ container NVM: using = "Units"
 		attribute<uint16>        bag_pand_hoogte       := NVM_Data/bag_pand_hoogte[uint16];
 		attribute<uint32>        d_highrise            := uint32(bag_pand_hoogte >= uint16(ModelParameters/Hoogbouwgrens[cm]));
 		
+		// legacy vars (rsval-ijkpunt): int-truncatie behouden zoals bij de 20251024-run
 		attribute<uint32>        UAI_2021                  := SourceData/Diversen/UAi_2021_int[rdc_100m_rel];
-		attribute<uint32>        UAI_2012_network          := SourceData/Diversen/UAI_2012_netwerk_geschaald_int[rdc_100m_rel];
 		attribute<uint32>        tt_500k_inw_2020_min      := uint32(SourceData/Diversen/tt_500kinhab_min_2020[rdc_100m_rel]);
 		attribute<uint32>        tt_trainstation_2006_min  := uint32(SourceData/Diversen/tt_Trainstation_2006_min[rdc_100m_rel]);
-		attribute<uint32>        tt_OVknooppunten_2026_min := uint32(SourceData/Diversen/Reistijd_OVknooppunten_min[rdc_100m_rel]);
+		// actieve redev/RS-vars: float, zonder truncatie (besluit 2026-07-15)
+		attribute<float32>       UAI_2012_network          := SourceData/Diversen/UAI_2012_netwerk_x100[rdc_100m_rel];
+		attribute<float32>       tt_500k_inw_2024_min      := value(SourceData/Diversen/tt_500kinhab_min_2024[rdc_100m_rel], float32);
+		attribute<float32>       tt_OVknooppunten_2026_min := value(SourceData/Diversen/Reistijd_OVknooppunten_min[rdc_100m_rel], float32);
 		attribute<uint2>         d_groennabij              := uint2(/SourceData/BBG/Dominant/BBG_groen_buff[rdc_10m_rel]);
 
 		attribute<rdc_10m>       rdc_10m_rel              := geometry[rdc_10m], DisableStorage = "true";
@@ -92,12 +95,13 @@ container NVM: using = "Units"
 		container impl
 		{
 			parameter<string> sep      := ';';
-			parameter<string> Kopregel := 'obsid;uai_2021;uai_2012_network;tt_500k_inw_2020_min;tt_trainstation_2006_min;tt_OVknooppunten_2026_min;d_groennabij';
+			parameter<string> Kopregel := 'obsid;uai_2021;uai_2012_network;tt_500k_inw_2020_min;tt_500k_inw_2024_min;tt_trainstation_2006_min;tt_OVknooppunten_2026_min;d_groennabij';
 			attribute<string> Body (Result) :=
 				  string(Result/obsid)
 				+ sep + MakeDefined(string(Result/UAI_2021), '')
 				+ sep + MakeDefined(string(Result/UAI_2012_network), '')
 				+ sep + MakeDefined(string(Result/tt_500k_inw_2020_min), '')
+				+ sep + MakeDefined(string(Result/tt_500k_inw_2024_min), '')
 				+ sep + MakeDefined(string(Result/tt_trainstation_2006_min), '')
 				+ sep + MakeDefined(string(Result/tt_OVknooppunten_2026_min), '')
 				+ sep + MakeDefined(string(Result/d_groennabij), '');

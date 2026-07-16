@@ -27,20 +27,34 @@ suppressPackageStartupMessages(library(fixest))
 ## ---------------------------------------------------------------------------
 maak_spec <- function(name, input_variant, covars_loc,
                       types = c("apartment", "terraced", "semidetached", "detached"),
-                      min_year = 2000, limit = FALSE) {
+                      min_year = 2000, limit = FALSE, onbekend_dummies = FALSE) {
   list(name = name, input_variant = input_variant, covars_loc = covars_loc,
-       types = types, min_year = min_year, limit = limit)
+       types = types, min_year = min_year, limit = limit,
+       onbekend_dummies = onbekend_dummies)
 }
 
 specs_alle <- list(
-  # Validatie/RS-opvolger: zelfde variabelen als de Stata-run van 20251024
+  # Validatie: zelfde variabelen en gedrag als de Stata-run van 20251024 (legacy-input)
   rsval       = maak_spec("rsval",       "legacy", c("lntt_500k", "lntt_station", "uai", "d_groennabij")),
   rsval_limit = maak_spec("rsval_limit", "legacy", c("lntt_500k", "lntt_station", "uai", "d_groennabij"),
-                          limit = TRUE)
-  # t.z.t. hier de redev-spec (#18 OV-knooppunt, #19 UAI 2012, #20 zonder groen), bv.:
-  # redev = maak_spec("redev", "pipeline", c("lntt_500k", "lntt_ovknoop", "uai_2012"))
+                          limit = TRUE),
+  # Eén modelset voor paper én RS (besluit 2026-07-13): #18 OV-knooppunt i.p.v.
+  # station-2006, #19 UAI-2012-netwerk, #20 zonder groen. De RS gebruikt dus
+  # dezelfde redev-bestanden; een aparte rs-spec bestaat niet meer.
+  # Reistijd 500k inwoners: 2024-versie (native 100m-raster) i.p.v. de 2020-versie
+  # (500m-raster, opgerekt naar 100m -> GeoDMS factor-warning).
+  redev       = maak_spec("redev",       "pipeline", c("lntt_500k_2024", "lntt_ovknoop", "uai_2012"),
+                          onbekend_dummies = TRUE),
+  # sensitiviteit: identiek aan redev, maar met de oude 2020-reistijd
+  redev_tt2020 = maak_spec("redev_tt2020", "pipeline", c("lntt_500k", "lntt_ovknoop", "uai_2012"),
+                          onbekend_dummies = TRUE),
+  # limit-variant (alleen lnsize als objectkenmerk) heeft geen actieve afnemer meer:
+  # RS leest hem niet en Redevelopment gebruikt vol model + reg_*-regiogemiddelden.
+  # Alleen draaien als sensitiviteit: specs_actief <- "redev_limit"
+  redev_limit = maak_spec("redev_limit", "pipeline", c("lntt_500k_2024", "lntt_ovknoop", "uai_2012"),
+                          limit = TRUE, onbekend_dummies = TRUE)
 )
-if (!exists("specs_actief")) specs_actief <- c("rsval", "rsval_limit")
+if (!exists("specs_actief")) specs_actief <- "redev"
 
 ## ---------------------------------------------------------------------------
 ## Schatting
@@ -50,6 +64,8 @@ rhs_voor <- function(spec, type) {
     if (!spec$limit && type != "apartment") "lnlotsize",
     if (!spec$limit) "nrooms",
     if (type == "apartment") "d_highrise",
+    # missing-indicator voor onbekende pandhoogte (zie README, afwijking 6)
+    if (type == "apartment" && isTRUE(spec$onbekend_dummies)) "d_hoogte_onbekend",
     "d_maintgood", "bouwperiode", "trans_year_f",
     spec$covars_loc)
 }
@@ -73,7 +89,8 @@ for (sp_naam in specs_actief) {
   if (is.null(spec)) stop("Onbekende spec: ", sp_naam)
 
   invoer <- cfg$file_04_analysis(spec$input_variant)
-  if (!file.exists(invoer)) stop("Analyseset ontbreekt: ", invoer, " — draai eerst stap 04.")
+  if (!file.exists(invoer)) stop("Analyseset ontbreekt: ", invoer,
+                                 " — draai eerst stap 04 (variant_04 = '", spec$input_variant, "').")
   a <- readRDS(invoer)
 
   for (tp in spec$types) {
@@ -101,5 +118,12 @@ for (sp_naam in specs_actief) {
 
 info <- rbindlist(modelinfo)
 info_bestand <- file.path(cfg$dir_output, sprintf("Estimates_%s_modelinfo.csv", cfg$tag))
+if (file.exists(info_bestand)) {
+  # regels van eerder gedraaide specs behouden; nu-gedraaide overschrijven
+  oud <- fread(info_bestand, sep = ";", colClasses = list(character = "run_datum"))
+  info <- rbindlist(list(oud[!info, on = .(spec, housing_type)], info),
+                    use.names = TRUE, fill = TRUE)
+  setorder(info, spec, housing_type)
+}
 fwrite(info, info_bestand, sep = ";")
 ri_log("Modelinfo -> %s", info_bestand)

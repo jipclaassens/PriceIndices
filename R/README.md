@@ -26,9 +26,23 @@ outputnamen, zodat oude bestanden (o.a. de door RS gebruikte
 
 Een schattingsvariant is een spec (naam, invoerset, locatievariabelen,
 sampleperiode, wel/niet `limit`). `rsval`/`rsval_limit` reproduceren de
-Stata-run van 20251024 (validatie; zie `99_validate_vs_stata.R`). De
-redev-paper-spec komt erbij zodra GitHub-issues Redevelopment#18 (OV-knooppunt),
-#19 (UAI 2012) en #20 (herschatting zonder groen) in de GeoDMS-kant zitten.
+Stata-run van 20251024 (validatie; zie `99_validate_vs_stata.R`; bevroren
+ijkpunt). `redev` is **de** actieve modelset — voor het densification-paper én
+de RuimteScanner (besluit 2026-07-13: geen aparte rs-spec):
+Redevelopment#18 `lntt_ovknoop`, #19 `uai_2012` (netwerkafstand), #20 zonder
+groen, `lntt_500k_2024` als bereikbaarheidsmaat, plus een
+`d_hoogte_onbekend`-dummy bij appartementen.
+
+Sensitiviteiten (niet in de default-run): `redev_tt2020` (oude 500m-reistijd
+i.p.v. de 2024-versie) en `redev_limit` (alleen `lnsize` als objectkenmerk).
+Draaien met `specs_actief <- "redev_tt2020"` vóór `source("05_estimate.R")`.
+
+**Keuze tt_500k (2026-07-14)**: de 2024-versie
+(`TraveltimeTo500k_Population_2024_From_100m_Points.tif`) is native 100m en
+vervangt het 500m-raster van 2020 (dat door GeoDMS naar 100m werd opgerekt).
+Empirisch fit 2020 wél iets beter voor de stedelijke types (R² ~+0.01) en 2024
+beter voor vrijstaand; de 2024-reistijden hebben een dikkere rechterstaart
+(p95 64 vs 45 min, correlatie 0.92). Bewuste keuze voor de betere bron.
 
 ## Output-format estimates
 
