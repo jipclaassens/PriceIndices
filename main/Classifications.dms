@@ -191,15 +191,17 @@ container Classifications : using = "Units"
 			'd_maintgood',
 			'd_highrise'
 		];
+		// float32: de regiokarakteristieken zijn potential-GEMIDDELDEN; integer-types vernietigden de fractie
+		// (d_maintgood/d_highrise als uint2 werden 0/1, nrooms als uint8 hele kamers). Tifs geregenereerd 2026-07-16.
 		attribute<string> ValueType :
 		[
-			'uint16_t',
-			'uint32_t',
-			'uint8_t',
-			'uint2_t',
-			'uint2_t'
+			'float32_t',
+			'float32_t',
+			'float32_t',
+			'float32_t',
+			'float32_t'
 		];
-	
+
 		attribute<string> name2 := 'char_' + name;
 		attribute<string> label := name;
 	}
@@ -216,5 +218,6 @@ container Classifications : using = "Units"
 		unit<UInt8>  uint8_t     := Units/uint8_t;
 		unit<UInt16> UInt16_t    := Units/UInt16_t;
 		unit<UInt32> uint32_t    := Units/uint32_t;
+		unit<Float32> float32_t  := Units/float32_t;
 	}
 }
