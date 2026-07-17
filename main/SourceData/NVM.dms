@@ -1,8 +1,8 @@
 container NVM: using = "Units"
 {
 	parameter<string> nvm_filedate       := ModelParameters/nvm_filedate;
-	// parameter<string> dir := 'C:/Users/JipClaassens/OneDrive - Objectvision/VU/Projects/NVM Prijsindex/EnhancedData'; // OVSRV08
-	parameter<string> dir := 'D:/OneDrive - Objectvision/VU/Projects/NVM Prijsindex/EnhancedData'; // OVSRV06
+	parameter<string> dir := 'C:/Users/JipClaassens/OneDrive - Objectvision/VU/Projects/NVM Prijsindex/EnhancedData'; // OVSRV08
+	// parameter<string> dir := 'D:/OneDrive - Objectvision/VU/Projects/NVM Prijsindex/EnhancedData'; // OVSRV06
 	parameter<string> csv_filename       := dir+'/NVM_1985_2023_cleaned_geocoded_'+nvm_filedate+'_slim.csv';
 	parameter<string> fss_filename       := '%LocalDataDir%/NVM/nvm_'+nvm_filedate;
 
@@ -83,7 +83,17 @@ container NVM: using = "Units"
 		attribute<float32>       tt_OVknooppunten_2026_min := value(SourceData/Diversen/Reistijd_OVknooppunten_min[rdc_100m_rel], float32);
 		attribute<uint2>         d_groennabij              := uint2(/SourceData/BBG/Dominant/BBG_groen_buff[rdc_10m_rel]);
 
+		// groenfracties uit LGN (issues RSopen#566/#481): aandeel per groencategorie in de omgevingsring
+		attribute<float32>       fr_natuur_500m            := SourceData/LGN/natuur_500m[rdc_25m_rel];
+		attribute<float32>       fr_natuur_2500m           := SourceData/LGN/natuur_2500m[rdc_100m_rel];
+		attribute<float32>       fr_natuur_tot2500m        := SourceData/LGN/natuur_tot2500m[rdc_100m_rel];
+		attribute<float32>       fr_landbouw_500m          := SourceData/LGN/landbouw_500m[rdc_25m_rel];
+		attribute<float32>       fr_stadsgroen_500m        := SourceData/LGN/stadsgroen_500m[rdc_25m_rel];
+		attribute<float32>       fr_overiggroen_500m       := SourceData/LGN/overiggroen_500m[rdc_25m_rel];
+		attribute<float32>       fr_water_500m             := SourceData/LGN/water_500m[rdc_25m_rel];
+
 		attribute<rdc_10m>       rdc_10m_rel              := geometry[rdc_10m], DisableStorage = "true";
+		attribute<rdc_25m>       rdc_25m_rel              := geometry[rdc_25m], DisableStorage = "true";
 		attribute<rdc_100m>      rdc_100m_rel             := geometry[rdc_100m], DisableStorage = "true";
 	}
 	
@@ -95,7 +105,7 @@ container NVM: using = "Units"
 		container impl
 		{
 			parameter<string> sep      := ';';
-			parameter<string> Kopregel := 'obsid;uai_2021;uai_2012_network;tt_500k_inw_2020_min;tt_500k_inw_2024_min;tt_trainstation_2006_min;tt_OVknooppunten_2026_min;d_groennabij';
+			parameter<string> Kopregel := 'obsid;uai_2021;uai_2012_network;tt_500k_inw_2020_min;tt_500k_inw_2024_min;tt_trainstation_2006_min;tt_OVknooppunten_2026_min;d_groennabij;fr_natuur_500m;fr_natuur_2500m;fr_natuur_tot2500m;fr_landbouw_500m;fr_stadsgroen_500m;fr_overiggroen_500m;fr_water_500m';
 			attribute<string> Body (Result) :=
 				  string(Result/obsid)
 				+ sep + MakeDefined(string(Result/UAI_2021), '')
@@ -104,7 +114,14 @@ container NVM: using = "Units"
 				+ sep + MakeDefined(string(Result/tt_500k_inw_2024_min), '')
 				+ sep + MakeDefined(string(Result/tt_trainstation_2006_min), '')
 				+ sep + MakeDefined(string(Result/tt_OVknooppunten_2026_min), '')
-				+ sep + MakeDefined(string(Result/d_groennabij), '');
+				+ sep + MakeDefined(string(Result/d_groennabij), '')
+				+ sep + MakeDefined(string(Result/fr_natuur_500m), '')
+				+ sep + MakeDefined(string(Result/fr_natuur_2500m), '')
+				+ sep + MakeDefined(string(Result/fr_natuur_tot2500m), '')
+				+ sep + MakeDefined(string(Result/fr_landbouw_500m), '')
+				+ sep + MakeDefined(string(Result/fr_stadsgroen_500m), '')
+				+ sep + MakeDefined(string(Result/fr_overiggroen_500m), '')
+				+ sep + MakeDefined(string(Result/fr_water_500m), '');
 		}
 		parameter<string> bestand := impl/Kopregel + '\n' + AsList(impl/Body, '\n')
 		, StorageName = "=dir+'/NVM_1985_2023_cleaned_geocoded_'+nvm_filedate+'_slim_spatial.csv'"

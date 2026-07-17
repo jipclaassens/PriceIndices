@@ -1,0 +1,92 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// Groenfracties per omgevingsring uit LGN (RSopen issues #566/#481).
+//
+// Per groencategorie (natuur/landbouw/stadsgroen/overiggroen/water, zie Classifications/LGNKlasse)
+// het aandeel van die categorie in de omgeving van elke cel:
+//  - *_500m       : schijf 0-500m, gemeten op het 25m-grid;
+//  - natuur_2500m : donut 500-2500m, gemeten op het 100m-grid (natuurgebieden werken op
+//                   grotere afstand door in woningprijzen; Daams et al. 2016. Het 100m-grid
+//                   houdt de kernel klein en matcht het AdminDomain waarop de RS de fractie
+//                   in zichtjaren naspeelt).
+//
+// Fracties zijn genormaliseerd op het LGN-gedekte deel van de ring: cellen buiten de LGN-dekking
+// (buitenland, zee) tellen niet mee in de noemer, zodat grens- en kustwoningen geen kunstmatig
+// lage fracties krijgen.
+//
+// Bron: LGN<jaar>_m25.tif, de door RSopen via Modus geaggregeerde 25m-versie (waarden zijn
+// LGNKlasse-INDICES). Bewust dezelfde bron als de RS-kant, zodat de indicator
+// WaardeNabijheidGroen in het basisjaar exact dezelfde fracties reproduceert.
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+container LGN
+{
+	parameter<String> filedate := ModelParameters/LGN_year;
+
+	attribute<LGNKlasse> m25 (rdc_25m)
+	:	StorageName     = "='%RSo_DataDir%/Grondgebruik/lgn/LGN'+filedate+'_m25.tif'"
+	,	StorageReadOnly = "True"
+	,	LazyCalculated  = "True"
+	,	URL             = "https://lgn.nl/bestanden"
+	,	Descr           = "LGN op 25m, modus-geaggregeerd door RSopen (cfg/main/SourceData/Grondgebruik/LGN.dms aldaar); celwaarden zijn LGNKlasse-indices. Bron: CC BY-SA 4.0 Wageningen Environmental Research.";
+
+	container Checks
+	: Descr = "Sanity-checks op de klasse-INDEX-koppeling met de RSopen-LGNKlasse-lijst: celtellingen per groencategorie (NL-land is ~54M cellen op 25m; landbouw ~50%, natuur ~15%, stadsgroen ~2-3%)."
+	{
+		parameter<uint32> n_gedekt      := sum_uint32(MakeDefined(m25 != LGNKlasse/V/onbekend, FALSE));
+		parameter<uint32> n_natuur      := sum_uint32(MakeDefined(LGNKlasse/IsNatuur[m25],      FALSE));
+		parameter<uint32> n_landbouw    := sum_uint32(MakeDefined(LGNKlasse/IsLandbouw[m25],    FALSE));
+		parameter<uint32> n_stadsgroen  := sum_uint32(MakeDefined(LGNKlasse/IsStadsgroen[m25],  FALSE));
+		parameter<uint32> n_overiggroen := sum_uint32(MakeDefined(LGNKlasse/IsOveriggroen[m25], FALSE));
+		parameter<uint32> n_water       := sum_uint32(MakeDefined(LGNKlasse/IsWater[m25],       FALSE));
+
+		parameter<string> rapport :=
+			  'n_gedekt;'      + string(n_gedekt)
+			+ '\nn_natuur;'      + string(n_natuur)
+			+ '\nn_landbouw;'    + string(n_landbouw)
+			+ '\nn_stadsgroen;'  + string(n_stadsgroen)
+			+ '\nn_overiggroen;' + string(n_overiggroen)
+			+ '\nn_water;'       + string(n_water)
+		,	StorageName = "%LocalDataDir%/PriceIndices/LGN_checks.txt"
+		,	StorageType = "str";
+	}
+
+	container Impl
+	{
+		attribute<float32> IsGedekt (rdc_25m) := float32(MakeDefined(m25 != LGNKlasse/V/onbekend, FALSE)), Descr = "1 waar LGN dekking heeft; noemer-basis voor de randcorrectie. De tif heeft geen nodata: buitenland is klasse 'onbekend' (index 0).";
+
+		attribute<float32> natuur      (rdc_25m) := MakeDefined(float32(LGNKlasse/IsNatuur[m25]),      0f);
+		attribute<float32> landbouw    (rdc_25m) := MakeDefined(float32(LGNKlasse/IsLandbouw[m25]),    0f);
+		attribute<float32> stadsgroen  (rdc_25m) := MakeDefined(float32(LGNKlasse/IsStadsgroen[m25]),  0f);
+		attribute<float32> overiggroen (rdc_25m) := MakeDefined(float32(LGNKlasse/IsOveriggroen[m25]), 0f);
+		attribute<float32> water       (rdc_25m) := MakeDefined(float32(LGNKlasse/IsWater[m25]),       0f);
+
+		attribute<float32> n_500m (rdc_25m) := max_elem(potential(IsGedekt, Geography/Distmatrices_25m/pot500m/Flat2), 0.0001f), Descr = "Gedekt oppervlak (in cellen) binnen 500m.";
+
+		// buitenring op het 100m-grid: eerst categorie-fractie per 100m-cel, dan potentials met kleine kernels
+		attribute<float32> natuur_100m   (rdc_100m) := mean(natuur,   rdc_25m/rdc_100m_rel);
+		attribute<float32> IsGedekt_100m (rdc_100m) := mean(IsGedekt, rdc_25m/rdc_100m_rel);
+
+		attribute<float32> natuur_binnen500_100m   (rdc_100m) := potential(natuur_100m,   Geography/Distmatrices_100m/pot500m/Flat2);
+		attribute<float32> natuur_binnen2500_100m  (rdc_100m) := potential(natuur_100m,   Geography/Distmatrices_100m/pot2500m/Flat2);
+		attribute<float32> gedekt_binnen500_100m   (rdc_100m) := potential(IsGedekt_100m, Geography/Distmatrices_100m/pot500m/Flat2);
+		attribute<float32> gedekt_binnen2500_100m  (rdc_100m) := potential(IsGedekt_100m, Geography/Distmatrices_100m/pot2500m/Flat2);
+	}
+
+	attribute<float32> natuur_500m      (rdc_25m) := potential(Impl/natuur,      Geography/Distmatrices_25m/pot500m/Flat2) / Impl/n_500m, Descr = "Aandeel natuur in de schijf 0-500m.";
+	attribute<float32> landbouw_500m    (rdc_25m) := potential(Impl/landbouw,    Geography/Distmatrices_25m/pot500m/Flat2) / Impl/n_500m, Descr = "Aandeel landbouw (excl. glastuinbouw) in de schijf 0-500m.";
+	attribute<float32> stadsgroen_500m  (rdc_25m) := potential(Impl/stadsgroen,  Geography/Distmatrices_25m/pot500m/Flat2) / Impl/n_500m, Descr = "Aandeel stadsgroen (bos/gras in bebouwd gebied) in de schijf 0-500m.";
+	attribute<float32> overiggroen_500m (rdc_25m) := potential(Impl/overiggroen, Geography/Distmatrices_25m/pot500m/Flat2) / Impl/n_500m, Descr = "Aandeel overig groen (overig gras: bermen, taluds) in de schijf 0-500m.";
+	attribute<float32> water_500m       (rdc_25m) := potential(Impl/water,       Geography/Distmatrices_25m/pot500m/Flat2) / Impl/n_500m, Descr = "Aandeel water in de schijf 0-500m.";
+
+	attribute<float32> natuur_2500m (rdc_100m) :=
+		  (Impl/natuur_binnen2500_100m - Impl/natuur_binnen500_100m)
+		/ max_elem(Impl/gedekt_binnen2500_100m - Impl/gedekt_binnen500_100m, 0.0001f)
+	,	Descr = "Aandeel natuur in de donut 500-2500m (gemeten op 100m-grid).";
+
+	attribute<float32> natuur_tot2500m (rdc_100m) :=
+		  Impl/natuur_binnen2500_100m
+		/ max_elem(Impl/gedekt_binnen2500_100m, 0.0001f)
+	,	Descr = "Aandeel natuur in de volledige schijf 0-2500m (gemeten op 100m-grid). Kern-variabele voor de rs_groen-spec: elke m2 natuur binnen 2,5km telt uniform mee, zodat de indicator geen nul- of negatief gewicht geeft aan natuur nabij (de donut-variant liet 0-500m buiten beschouwing).";
+}

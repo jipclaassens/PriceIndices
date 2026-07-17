@@ -48,13 +48,33 @@ specs_alle <- list(
   # sensitiviteit: identiek aan redev, maar met de oude 2020-reistijd
   redev_tt2020 = maak_spec("redev_tt2020", "pipeline", c("lntt_500k", "lntt_ovknoop", "uai_2012"),
                           onbekend_dummies = TRUE),
+  # RS-spec met groen (RSopen#566/#481): redev + de twee geloofwaardige groentermen
+  # (besluit 2026-07-17): natuur als schijf 0-2500m en water 0-500m, beide fracties 0-1
+  # (beta = log-prijseffect van 0% -> 100%). De 500m-binnenring-termen (stadsgroen,
+  # landbouw, overiggroen, natuur-500) meten buurtopbouw i.p.v. groenwaardering
+  # (negatieve tekens bij stedelijke types) en zitten alleen in de _vol-sensitiviteit.
+  # Het redevelopment-paper blijft bewust op de groenloze redev-spec (#20 aldaar).
+  rs_groen    = maak_spec("rs_groen",    "pipeline", c("lntt_500k_2024", "lntt_ovknoop", "uai_2012",
+                                                       "fr_natuur_tot2500m", "fr_water_500m"),
+                          onbekend_dummies = TRUE),
+  # sensitiviteit: natuur als donut 500-2500m i.p.v. schijf (0-500m telt dan niet mee)
+  rs_groen_donut = maak_spec("rs_groen_donut", "pipeline", c("lntt_500k_2024", "lntt_ovknoop", "uai_2012",
+                                                       "fr_natuur_2500m", "fr_water_500m"),
+                          onbekend_dummies = TRUE),
+  # sensitiviteit: de volle zes-categorieen-set (run 2026-07-17: R2 hoger maar
+  # binnenring-tekens implausibel als waardering)
+  rs_groen_vol = maak_spec("rs_groen_vol", "pipeline", c("lntt_500k_2024", "lntt_ovknoop", "uai_2012",
+                                                       "fr_natuur_500m", "fr_natuur_2500m",
+                                                       "fr_landbouw_500m", "fr_stadsgroen_500m",
+                                                       "fr_overiggroen_500m", "fr_water_500m"),
+                          onbekend_dummies = TRUE),
   # limit-variant (alleen lnsize als objectkenmerk) heeft geen actieve afnemer meer:
   # RS leest hem niet en Redevelopment gebruikt vol model + reg_*-regiogemiddelden.
   # Alleen draaien als sensitiviteit: specs_actief <- "redev_limit"
   redev_limit = maak_spec("redev_limit", "pipeline", c("lntt_500k_2024", "lntt_ovknoop", "uai_2012"),
                           limit = TRUE, onbekend_dummies = TRUE)
 )
-if (!exists("specs_actief")) specs_actief <- "redev"
+if (!exists("specs_actief")) specs_actief <- c("redev", "rs_groen")
 
 ## ---------------------------------------------------------------------------
 ## Schatting

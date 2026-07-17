@@ -4,6 +4,7 @@ container PriceIndices
 	{
 		parameter<string> nvm_filedate       := '20260711';  //20251024 20250520 20240926
 		parameter<string> Regio_jaar         := '2023';
+		parameter<string> LGN_year           := '2024', Descr = "LGN-vintage voor de groenfracties (issues RSopen#566/#481); leest de door RSopen gegenereerde LGN<jaar>_m25.tif";
 		
 		
 		parameter<UInt32>    BAG_RecentYear                :=  2026, Descr = "Wat is het meest recent beschikbare jaar van de BAG";

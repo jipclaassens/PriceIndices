@@ -27,11 +27,26 @@ outputnamen, zodat oude bestanden (o.a. de door RS gebruikte
 Een schattingsvariant is een spec (naam, invoerset, locatievariabelen,
 sampleperiode, wel/niet `limit`). `rsval`/`rsval_limit` reproduceren de
 Stata-run van 20251024 (validatie; zie `99_validate_vs_stata.R`; bevroren
-ijkpunt). `redev` is **de** actieve modelset — voor het densification-paper én
-de RuimteScanner (besluit 2026-07-13: geen aparte rs-spec):
+ijkpunt). `redev` is de modelset van het densification-paper:
 Redevelopment#18 `lntt_ovknoop`, #19 `uai_2012` (netwerkafstand), #20 zonder
 groen, `lntt_500k_2024` als bereikbaarheidsmaat, plus een
 `d_hoogte_onbekend`-dummy bij appartementen.
+
+`rs_groen` (2026-07-17, RSopen#566/#481) = `redev` + twee LGN2024-groenfracties:
+`fr_natuur_tot2500m` (aandeel natuur in de schijf 0–2500m) en `fr_water_500m`,
+berekend in `main/SourceData/LGN.dms` (bron: `LGN<jaar>_m25.tif` uit de
+RSopen-data; categorie-indeling in `main/Classifications/LGNKlasse.dms`). Dit
+nuanceert het besluit van 2026-07-13 ("geen aparte rs-spec"): de RuimteScanner
+leest voortaan de `rs_groen`-estimates (waardering groen), het paper blijft op
+de groenloze `redev`. De default-run draait beide.
+
+Bewust beperkt tot deze twee termen (besluit 2026-07-17): de
+500m-binnenring-fracties (stadsgroen, landbouw, overiggroen, natuur-500) kregen
+negatieve/wisselende tekens bij stedelijke woningtypen — ze meten buurtopbouw
+(ruime suburbane wijk vs. duur stenig centrum), geen groenwaardering, en horen
+daarom niet in een waarderings-indicator. Sensitiviteiten: `rs_groen_donut`
+(natuur als donut 500–2500m; 0–500m telt niet mee) en `rs_groen_vol` (de volle
+zes-categorieën-set; hogere R² maar implausibele tekens).
 
 Sensitiviteiten (niet in de default-run): `redev_tt2020` (oude 500m-reistijd
 i.p.v. de 2024-versie) en `redev_limit` (alleen `lnsize` als objectkenmerk).

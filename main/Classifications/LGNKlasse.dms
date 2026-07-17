@@ -1,0 +1,98 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// LGN-klassen (legenda LGN2022/2024, 51 klassen) met groencategorie-indeling voor de
+// hedonische groenfracties (RSopen issues #566/#481: natuur/landbouw/stadsgroen/overiggroen/water).
+//
+// LET OP: volgorde en NrOfRows MOETEN identiek blijven aan RSopen cfg/main/Classifications/Grondgebruik.dms
+// (unit LGNKlasse): de daar gegenereerde LGN<jaar>_m25.tif bevat klasse-INDICES (0..50), geen LGN-codes.
+//
+// Categorie-keuzes (afgestemd 2026-07-17, zie RSopen#566):
+//  - glastuinbouw (8) is GEEN groen (kassen ogen als bebouwing);
+//  - rietvegetatie (42), bos in moerasgebied (43) en natuurlijk beheerde agrarische graslanden (45)
+//    tellen als natuur (belevingswaarde; in RS-LU_ModelType deels natte teelt/extensieve landbouw);
+//  - overig gras (47) is de enige klasse in 'overiggroen' (bermen, taluds, recreatief gras buiten
+//    bebouwd gebied);
+//  - stadsgroen = bos/gras binnen bebouwd gebied (20/22/23/28); parken, sportvelden, plantsoenen,
+//    volkstuinen en groot privaat groen (tuinen) vallen hieronder — breder dan alleen 'park'
+//    (landelijk ~4.650 km2; check via SourceData/LGN/Checks).
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+unit<UInt8> LGNKlasse : NrOfRows = 51
+{
+	unit<UInt32> elem := range(uint32, 0, nrAttr * uint32(#.))
+	{
+		attribute<String> values: [
+		// 'code','naam'                                                            ,'groencat'
+			'0'   ,'onbekend'                                                       ,'',
+			'1'   ,'agrarisch gras'                                                 ,'landbouw',
+			'2'   ,'maïs'                                                      ,'landbouw',
+			'3'   ,'aardappelen'                                                    ,'landbouw',
+			'4'   ,'bieten'                                                         ,'landbouw',
+			'5'   ,'granen'                                                         ,'landbouw',
+			'6'   ,'overige Landbouwgewassen'                                       ,'landbouw',
+			'8'   ,'Glastuinbouw'                                                   ,'',
+			'9'   ,'Boomgaarden'                                                    ,'landbouw',
+			'10'  ,'bloembollen'                                                    ,'landbouw',
+			'11'  ,'loofbos'                                                        ,'natuur',
+			'12'  ,'naaldbos'                                                       ,'natuur',
+			'16'  ,'zoet water'                                                     ,'water',
+			'17'  ,'zout water'                                                     ,'water',
+			'18'  ,'bebouwing in primair bebouwd gebied'                            ,'',
+			'19'  ,'bebouwing in secundair bebouwd gebied'                          ,'',
+			'20'  ,'bos in primair bebouwd gebied'                                  ,'stadsgroen',
+			'22'  ,'bos in secundair bebouwd gebied'                                ,'stadsgroen',
+			'23'  ,'gras in primair bebouwd gebied'                                 ,'stadsgroen',
+			'26'  ,'bebouwing in buitengebied'                                      ,'',
+			'27'  ,'overig Grondgebruik in buitengebied'                            ,'',
+			'28'  ,'gras in secundair bebouwd gebied'                               ,'stadsgroen',
+			'29'  ,'zonneparken'                                                    ,'',
+			'30'  ,'kwelders'                                                       ,'natuur',
+			'31'  ,'open zand in kustgebied'                                        ,'natuur',
+			'32'  ,'duinen met lage vegetatie'                                      ,'natuur',
+			'33'  ,'duinen met hoge vegetatie'                                      ,'natuur',
+			'34'  ,'duinheide'                                                      ,'natuur',
+			'35'  ,'open stuifzand en/of rivierzand'                                ,'natuur',
+			'36'  ,'heide'                                                          ,'natuur',
+			'37'  ,'matig vergraste heide'                                          ,'natuur',
+			'38'  ,'sterk vergraste heide'                                          ,'natuur',
+			'39'  ,'hoogveen'                                                       ,'natuur',
+			'40'  ,'bos in hoogveengebied'                                          ,'natuur',
+			'41'  ,'overige moeras vegetatie'                                       ,'natuur',
+			'42'  ,'rietvegetatie'                                                  ,'natuur',
+			'43'  ,'bos in moerasgebied'                                            ,'natuur',
+			'45'  ,'natuurlijk beheerde agrarische graslanden'                      ,'natuur',
+			'46'  ,'gras in het kustgebied'                                         ,'natuur',
+			'47'  ,'overig gras'                                                    ,'overiggroen',
+			'61'  ,'boomkwekerijen'                                                 ,'landbouw',
+			'62'  ,'fruitkwekerijen'                                                ,'landbouw',
+			'251' ,'hoofdinfrastructuur en Spoorbaanlichamen'                       ,'',
+			'252' ,'halfverharde wegen, infrastructuur langzaam verkeer en overige' ,'',
+			'253' ,'smalle wegen'                                                   ,'',
+			'321' ,'struikvegetatie in hoogveengebied (laag)'                       ,'natuur',
+			'322' ,'struikvegetatie in moerasgebied (laag)'                         ,'natuur',
+			'323' ,'overige struikvegetatie (laag)'                                 ,'natuur',
+			'331' ,'struikvegetatie in hoogveengebied (hoog)'                       ,'natuur',
+			'332' ,'struikvegetatie in moerasgebied (hoog)'                         ,'natuur',
+			'333' ,'overige struikvegetatie (hoog)'                                 ,'natuur'
+		];
+	}
+	attribute<UInt32> id := uint32(id(.));
+
+	attribute<UInt16> code     := UInt16(elem/values[value(id * nrAttr + 0, elem)]);
+	attribute<String> naam     := elem/values[value(id * nrAttr + 1, elem)];
+	attribute<String> groencat := elem/values[value(id * nrAttr + 2, elem)];
+
+	attribute<String> Label := naam, DialogType = "LabelText";
+	attribute<String> name  := AsItemName(naam);
+
+	attribute<Bool> IsNatuur      := groencat == 'natuur';
+	attribute<Bool> IsLandbouw    := groencat == 'landbouw';
+	attribute<Bool> IsStadsgroen  := groencat == 'stadsgroen';
+	attribute<Bool> IsOveriggroen := groencat == 'overiggroen';
+	attribute<Bool> IsWater       := groencat == 'water';
+
+	container V := for_each_nedv(name, string(id(.))+'[..]', void, .);
+
+	parameter<UInt32> nrAttr := 3;
+}

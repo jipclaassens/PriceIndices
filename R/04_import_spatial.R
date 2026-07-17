@@ -51,7 +51,12 @@ if (variant_04 == "legacy") {
   sp <- fread(cfg$file_spatial, sep = ";", na.strings = c("", "null", "NULL"))
   nodig <- c("obsid", "uai_2021", "uai_2012_network", "tt_500k_inw_2020_min",
              "tt_500k_inw_2024_min", "tt_trainstation_2006_min",
-             "tt_OVknooppunten_2026_min", "d_groennabij")
+             "tt_OVknooppunten_2026_min", "d_groennabij",
+             # LGN-groenfracties (RSopen#566/#481): aandeel per categorie in de
+             # omgevingsring (500m-schijf; natuur ook donut 500-2500m en schijf 0-2500m)
+             "fr_natuur_500m", "fr_natuur_2500m", "fr_natuur_tot2500m",
+             "fr_landbouw_500m", "fr_stadsgroen_500m", "fr_overiggroen_500m",
+             "fr_water_500m")
   weg <- setdiff(nodig, names(sp))
   if (length(weg)) stop("Spatial-CSV mist kolommen: ", paste(weg, collapse = ", "))
   setnames(sp, c("uai_2021", "uai_2012_network", "tt_500k_inw_2020_min",

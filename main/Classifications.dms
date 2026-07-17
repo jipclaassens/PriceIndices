@@ -180,7 +180,8 @@ container Classifications : using = "Units"
 	
 	
 	#include<CBSKlasse2020.dms>
-	
+	#include<LGNKlasse.dms>
+
 	unit<uint8> HouseCharacteristics : nrofrows = 5
 	{
 		attribute<string> name :
