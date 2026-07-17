@@ -87,6 +87,8 @@ container NVM: using = "Units"
 		attribute<float32>       fr_natuur_500m            := SourceData/LGN/natuur_500m[rdc_25m_rel];
 		attribute<float32>       fr_natuur_2500m           := SourceData/LGN/natuur_2500m[rdc_100m_rel];
 		attribute<float32>       fr_natuur_tot2500m        := SourceData/LGN/natuur_tot2500m[rdc_100m_rel];
+		attribute<float32>       fr_groen_500m             := SourceData/BGT/fr_groen_500m[rdc_25m_rel];
+		attribute<float32>       fr_groen_100m             := SourceData/BGT/fr_groen_100m[rdc_25m_rel];
 		attribute<float32>       fr_landbouw_500m          := SourceData/LGN/landbouw_500m[rdc_25m_rel];
 		attribute<float32>       fr_stadsgroen_500m        := SourceData/LGN/stadsgroen_500m[rdc_25m_rel];
 		attribute<float32>       fr_overiggroen_500m       := SourceData/LGN/overiggroen_500m[rdc_25m_rel];
@@ -105,7 +107,7 @@ container NVM: using = "Units"
 		container impl
 		{
 			parameter<string> sep      := ';';
-			parameter<string> Kopregel := 'obsid;uai_2021;uai_2012_network;tt_500k_inw_2020_min;tt_500k_inw_2024_min;tt_trainstation_2006_min;tt_OVknooppunten_2026_min;d_groennabij;fr_natuur_500m;fr_natuur_2500m;fr_natuur_tot2500m;fr_landbouw_500m;fr_stadsgroen_500m;fr_overiggroen_500m;fr_water_500m';
+			parameter<string> Kopregel := 'obsid;uai_2021;uai_2012_network;tt_500k_inw_2020_min;tt_500k_inw_2024_min;tt_trainstation_2006_min;tt_OVknooppunten_2026_min;d_groennabij;fr_natuur_500m;fr_natuur_2500m;fr_natuur_tot2500m;fr_groen_500m;fr_groen_100m;fr_landbouw_500m;fr_stadsgroen_500m;fr_overiggroen_500m;fr_water_500m';
 			attribute<string> Body (Result) :=
 				  string(Result/obsid)
 				+ sep + MakeDefined(string(Result/UAI_2021), '')
@@ -118,6 +120,8 @@ container NVM: using = "Units"
 				+ sep + MakeDefined(string(Result/fr_natuur_500m), '')
 				+ sep + MakeDefined(string(Result/fr_natuur_2500m), '')
 				+ sep + MakeDefined(string(Result/fr_natuur_tot2500m), '')
+				+ sep + MakeDefined(string(Result/fr_groen_500m), '')
+				+ sep + MakeDefined(string(Result/fr_groen_100m), '')
 				+ sep + MakeDefined(string(Result/fr_landbouw_500m), '')
 				+ sep + MakeDefined(string(Result/fr_stadsgroen_500m), '')
 				+ sep + MakeDefined(string(Result/fr_overiggroen_500m), '')

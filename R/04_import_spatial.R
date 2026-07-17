@@ -52,11 +52,12 @@ if (variant_04 == "legacy") {
   nodig <- c("obsid", "uai_2021", "uai_2012_network", "tt_500k_inw_2020_min",
              "tt_500k_inw_2024_min", "tt_trainstation_2006_min",
              "tt_OVknooppunten_2026_min", "d_groennabij",
-             # LGN-groenfracties (RSopen#566/#481): aandeel per categorie in de
-             # omgevingsring (500m-schijf; natuur ook donut 500-2500m en schijf 0-2500m)
+             # Groenfracties (RSopen#566/#481): aandeel per categorie in de
+             # omgevingsring (500m-schijf; natuur ook donut 500-2500m en schijf
+             # 0-2500m; fr_groen_500m = BGT-groen excl. LGN-natuur/landbouwcellen)
              "fr_natuur_500m", "fr_natuur_2500m", "fr_natuur_tot2500m",
-             "fr_landbouw_500m", "fr_stadsgroen_500m", "fr_overiggroen_500m",
-             "fr_water_500m")
+             "fr_groen_500m", "fr_groen_100m", "fr_landbouw_500m", "fr_stadsgroen_500m",
+             "fr_overiggroen_500m", "fr_water_500m")
   weg <- setdiff(nodig, names(sp))
   if (length(weg)) stop("Spatial-CSV mist kolommen: ", paste(weg, collapse = ", "))
   setnames(sp, c("uai_2021", "uai_2012_network", "tt_500k_inw_2020_min",

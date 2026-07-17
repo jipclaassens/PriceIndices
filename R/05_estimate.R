@@ -48,14 +48,26 @@ specs_alle <- list(
   # sensitiviteit: identiek aan redev, maar met de oude 2020-reistijd
   redev_tt2020 = maak_spec("redev_tt2020", "pipeline", c("lntt_500k", "lntt_ovknoop", "uai_2012"),
                           onbekend_dummies = TRUE),
-  # RS-spec met groen (RSopen#566/#481): redev + de twee geloofwaardige groentermen
-  # (besluit 2026-07-17): natuur als schijf 0-2500m en water 0-500m, beide fracties 0-1
-  # (beta = log-prijseffect van 0% -> 100%). De 500m-binnenring-termen (stadsgroen,
-  # landbouw, overiggroen, natuur-500) meten buurtopbouw i.p.v. groenwaardering
-  # (negatieve tekens bij stedelijke types) en zitten alleen in de _vol-sensitiviteit.
+  # RS-spec met groen (RSopen#566/#481): redev + de twee geloofwaardige groenblauwtermen
+  # (besluit 2026-07-17): natuur als schijf 0-2500m (LGN2024) en water 0-500m, fracties
+  # 0-1 (beta = log-prijseffect van 0% -> 100%). Stadsgroen is drievoudig getest
+  # (LGN-stadsgroen 500m; BGT-groen incl. erf~0,35 op 500m en 100m) en kreeg telkens
+  # negatieve tekens bij stedelijke woningtypen: de term meet buurtopbouw (ruim opgezette
+  # wijk vs duur stenig centrum), geen groenwaardering, ook met lnlotsize als
+  # perceel-control. Zie de rs_groen_g500/g100/vol-sensitiviteiten.
   # Het redevelopment-paper blijft bewust op de groenloze redev-spec (#20 aldaar).
   rs_groen    = maak_spec("rs_groen",    "pipeline", c("lntt_500k_2024", "lntt_ovknoop", "uai_2012",
                                                        "fr_natuur_tot2500m", "fr_water_500m"),
+                          onbekend_dummies = TRUE),
+  # sensitiviteiten: + BGT-groen (excl. natuur/landbouwcellen, erf ~0,35) op 500m resp.
+  # 100m ('zicht op groen', vgl. PBL-parkeffect <100m) — negatieve tekens, zie boven
+  rs_groen_g500 = maak_spec("rs_groen_g500", "pipeline", c("lntt_500k_2024", "lntt_ovknoop", "uai_2012",
+                                                       "fr_natuur_tot2500m", "fr_groen_500m",
+                                                       "fr_water_500m"),
+                          onbekend_dummies = TRUE),
+  rs_groen_g100 = maak_spec("rs_groen_g100", "pipeline", c("lntt_500k_2024", "lntt_ovknoop", "uai_2012",
+                                                       "fr_natuur_tot2500m", "fr_groen_100m",
+                                                       "fr_water_500m"),
                           onbekend_dummies = TRUE),
   # sensitiviteit: natuur als donut 500-2500m i.p.v. schijf (0-500m telt dan niet mee)
   rs_groen_donut = maak_spec("rs_groen_donut", "pipeline", c("lntt_500k_2024", "lntt_ovknoop", "uai_2012",

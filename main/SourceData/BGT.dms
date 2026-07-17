@@ -1,0 +1,64 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// Groenfractie op BGT-basis voor de rs_groen-prijsindexset (RSopen issues #566/#481).
+//
+// fr_groen_500m = aandeel BGT-groen in de schijf 0-500m, EXCLUSIEF cellen die volgens LGN natuur of
+// landbouw zijn. Dit is 'groen zoals in de Afstand-tot-groen-indicator' van RSopen: alle groene
+// BGT-klassen gewogen met hun empirische groenfractie (Classifications/Grondgebruik/BGT/Classes/
+// Fractie_Groen aldaar; o.a. groenvoorziening 1,0 en onbegroeidterreindeel_erf ~0,35 via
+// 0,80 onverhard-groen x (1 - empirische verharding)). Privaat groen (tuinen/erf) telt dus gedempt
+// mee; het eigen perceel van de woning wordt in de regressie al door lnlotsize gecontroleerd.
+//
+// De natuur/landbouw-uitsluiting (LGN-celmasker) voorkomt dubbeltelling met fr_natuur_tot2500m en
+// haalt agrarisch grasland/bouwland/bos/heide uit de groenterm, conform het besluit in #566.
+//
+// Bron: GroenOpp_<BGT_file_date>_Per_AdminDomain_Nederland.tif — m2 BGT-groen per 25m-cel, door
+// RSopen gegenereerd (cfg/main/SourceData/Grondgebruik/BGT.dms aldaar, Make_GroenOpp_AdminDomain)
+// en gekopieerd naar %RSo_DataDir%/Grondgebruik/BGT/.
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+container BGT
+{
+	parameter<String> filedate := ModelParameters/BGT_file_date;
+
+	attribute<float32> GroenOpp_m2 (rdc_25m)
+	:	StorageName     = "='%RSo_DataDir%/Grondgebruik/BGT/GroenOpp_'+filedate+'_Per_AdminDomain_Nederland.tif'"
+	,	StorageReadOnly = "True"
+	,	LazyCalculated  = "True"
+	,	Descr           = "BGT-groenoppervlak (m2) per 25m-cel: som over de 2,5m-rasterisatie van Fractie_Groen per BGT-klasse.";
+
+	container Checks
+	{
+		parameter<float32> som_m2     := sum(MakeDefined(GroenOpp_m2, 0f));
+		parameter<float32> max_m2     := max(GroenOpp_m2);
+		parameter<uint32>  n_defined  := sum_uint32(IsDefined(GroenOpp_m2));
+		parameter<uint32>  n_positief := sum_uint32(MakeDefined(GroenOpp_m2 > 0f, FALSE));
+		parameter<string> rapport :=
+			  'som_m2;'    + string(som_m2)
+			+ '\nmax_m2;'    + string(max_m2)
+			+ '\nn_defined;' + string(n_defined)
+			+ '\nn_positief;'+ string(n_positief)
+		,	StorageName = "%LocalDataDir%/PriceIndices/BGT_checks.txt"
+		,	StorageType = "str";
+	}
+
+	container Impl
+	{
+		attribute<float32> groenfractie_cel (rdc_25m) := min_elem(MakeDefined(GroenOpp_m2, 0f) / 625f, 1f), Descr = "BGT-groen als fractie van de cel (25m = 625 m2), geklemd op [0,1].";
+
+		attribute<bool>    IsNatuurOfLandbouwCel (rdc_25m) := MakeDefined(LGNKlasse/IsNatuur[LGN/m25] || LGNKlasse/IsLandbouw[LGN/m25], FALSE), Descr = "LGN-celmasker: natuur- en landbouwcellen tellen niet mee in de groenterm (zit al in fr_natuur resp. de referentie).";
+
+		attribute<float32> groen_excl (rdc_25m) := IsNatuurOfLandbouwCel ? 0f : groenfractie_cel;
+	}
+
+	attribute<float32> fr_groen_500m (rdc_25m) :=
+		  potential(Impl/groen_excl, Geography/Distmatrices_25m/pot500m/Flat2)
+		/ LGN/Impl/n_500m
+	,	Descr = "Aandeel BGT-groen (excl. natuur-/landbouwcellen) in de schijf 0-500m; zelfde kernel en noemer (LGN-gedekt gebied) als de andere fracties.";
+
+	attribute<float32> fr_groen_100m (rdc_25m) :=
+		  potential(Impl/groen_excl, Geography/Distmatrices_25m/pot100m/Flat2)
+		/ max_elem(potential(LGN/Impl/IsGedekt, Geography/Distmatrices_25m/pot100m/Flat2), 0.0001f)
+	,	Descr = "Aandeel BGT-groen (excl. natuur-/landbouwcellen) in de schijf 0-100m ('zicht op groen', vgl. PBL-parkeffect <100m); sensitiviteit naast de 500m-variant.";
+}
