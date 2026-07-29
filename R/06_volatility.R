@@ -87,13 +87,18 @@ bereken_vol_rolling <- function(dt, korrel) {
   grid[idxtab, on = .(regio, jaar), index := i.index]
   setorder(grid, regio, jaar)
   grid[, g := index - shift(index), by = regio]
+  # naast de sd ook het rolling GEMIDDELDE van de groei: de groeiverwachting. Capozza & Li:
+  # zowel onzekerheid als verwachte groei verhogen de optiewaarde van wachten — een
+  # volatiliteitscoefficient zonder groei-control is dus potentieel vertekend.
   grid[, vol_roll5 := frollapply(g, 5, function(v) if (sum(!is.na(v)) >= 4) sd(v, na.rm = TRUE) else NA_real_), by = regio]
-  uit <- grid[!is.na(vol_roll5), .(regio, besluitjaar = jaar + 1L, vol_roll5)]
+  grid[, g_roll5   := frollapply(g, 5, function(v) if (sum(!is.na(v)) >= 4) mean(v, na.rm = TRUE) else NA_real_), by = regio]
+  uit <- grid[!is.na(vol_roll5), .(regio, besluitjaar = jaar + 1L, vol_roll5, g_roll5)]
   bestand <- file.path(cfg$dir_output, sprintf("Volatility_rolling_%s_%s.csv", cfg$tag, korrel))
   fwrite(uit, bestand, sep = ";")
   ri_log("rolling %-13s: %s regio-jaren (%s regio's), besluitjaren %d-%d -> %s",
          korrel, format(nrow(uit), big.mark = ","), format(uniqueN(uit$regio), big.mark = ","),
          min(uit$besluitjaar), max(uit$besluitjaar), basename(bestand))
 }
-for (korrel in c("gemeente_code", "grid5km")) bereken_vol_rolling(dt, korrel)
+dt[, nationaal := "NL"]   # nationale reeks (1 'regio'): tbv hazard-variant zonder jaar-FE
+for (korrel in c("gemeente_code", "grid5km", "nationaal")) bereken_vol_rolling(dt, korrel)
 ri_log("Klaar.")
