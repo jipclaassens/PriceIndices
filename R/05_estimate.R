@@ -102,7 +102,7 @@ rhs_voor <- function(spec, type) {
     spec$covars_loc)
 }
 
-tidy_fixest <- function(m) {
+tidy_fixest <- function(m, spec) {
   ct <- as.data.table(summary(m)$coeftable, keep.rownames = "term")
   setnames(ct, c("term", "estimate", "std_error", "t_value", "p_value"))
   ci <- confint(m)
@@ -111,7 +111,16 @@ tidy_fixest <- function(m) {
   ct[, term := gsub("^\\(Intercept\\)$", "constant", term)]
   ct[, term := gsub("^bouwperiode", "bouwperiode_", term)]
   ct[, term := gsub("^trans_year_f", "trans_year_", term)]
-  ct[]
+
+  # Referentieniveaus expliciet als 0 wegschrijven. fixest laat ze weg, maar de
+  # GeoDMS-afnemers (RS, Redevelopment) zoeken elk kenmerk op met rlookup: een
+  # ontbrekende basiscategorie geeft daar een null-coefficient en daarmee een
+  # null-prijs. Stata's parmest deed dit met 'allbaselevels'.
+  ref <- data.table(
+    term      = c("bouwperiode_va2002", paste0("trans_year_", spec$min_year)),
+    estimate  = 0, std_error = 0, t_value = NA_real_, p_value = NA_real_,
+    ci_low    = 0, ci_high = 0)
+  rbind(ct, ref[!term %in% ct$term], use.names = TRUE)[]
 }
 
 modelinfo <- list()
@@ -132,7 +141,7 @@ for (sp_naam in specs_actief) {
     fml <- as.formula(paste("lnprice ~", paste(rhs_voor(spec, tp), collapse = " + ")))
     m <- feols(fml, data = dat, vcov = "hetero")   # HC1, zoals Stata's ', r'
 
-    uit <- tidy_fixest(m)
+    uit <- tidy_fixest(m, spec)
     bestand <- file.path(cfg$dir_output,
                          sprintf("Estimates_%s_%s_%s.csv", cfg$tag, spec$name, tp))
     fwrite(uit, bestand, sep = ";")
