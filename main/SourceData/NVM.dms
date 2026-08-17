@@ -143,9 +143,8 @@ container NVM: using = "Units"
 		//
 		parameter<string> type;
 		//
-		unit<uint32> subset := ='select_with_org_rel_with_attr_by_cond(Result, Result/d_' +string(type)+ '[uint2] == 1[uint2] && Result/lotsize[meter2] < 99999[meter2])'
+		unit<uint32> subset := ='select_with_org_rel_with_attr_by_cond(Result, Result/d_' +string(type)+ '[uint2] == 1[uint2])'
 		{
-			// attribute<rdc_meter>    geometry           := Result/geometry[org_rel];
 			attribute<rdc_25m>      rdc_25m_rel        := geometry[rdc_25m];
 		}
 	}
