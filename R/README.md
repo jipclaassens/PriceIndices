@@ -132,8 +132,17 @@ meer — de namen zijn direct geldige GeoDMS-itemnamen. Per run komt er ook een
    (`main/SourceData/NVM.dms`, `RegionalAverages`) telden perceel 0 mee en lagen
    daardoor landelijk 1 tot 4% te laag; vanaf vintage 20261011
    (`ModelParameters/kenmerken_filedate`) tellen onbekende percelen van
-   grondgebonden woningen niet meer mee. De andere 17 tifs van 20261011 zijn
-   bit voor bit gelijk aan die van 20260711.
+   grondgebonden woningen niet meer mee. Bovendien is hun perceelgemiddelde
+   vanaf die vintage meetkundig (gemiddelde van ln perceel), omdat het model in
+   ln(perceel) rekent: met het rekenkundige gemiddelde lag de voorspelde prijs
+   met de nieuwe elasticiteiten landelijk 12,6% (vrijstaand), 3,3% (2^1kap) en
+   2,2% (rijtjes) te hoog. Regionaal alleen waar het gewogen aantal verkopen
+   minstens `ModelParameters/Perceel_min_verkopen` is (gewicht 1 in de cel,
+   lineair naar 0 op 5 km); daaronder blijft de cel leeg en vallen RS en paper
+   terug op het landelijke gemiddelde. Appartementen houden het rekenkundige
+   gemiddelde (geen perceelterm). De andere 17 tifs van 20261011 (alle
+   kenmerken behalve het perceel van de drie grondgebonden types) zijn bit voor
+   bit gelijk aan die van 20260711.
 
 ## Validatie
 

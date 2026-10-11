@@ -167,20 +167,20 @@ container NVM: using = "Units"
 			///
 			unit<uint8>  domain := =type_name;
 			unit<uint32> comb   := =type_name+'xHouseChar';
-			
-			container MakeNationalAvgCharacteristics := 
+
+			// Het perceel staat als ln(perceel) in de hedoon: voor de grondgebonden types het meetkundige
+			// gemiddelde (gemiddelde van ln), anders ligt ln(gemiddelde) door de scheve verdeling boven het
+			// gemiddelde van ln; appartementen houden het rekenkundige gemiddelde (geen perceelterm, vaak 0).
+			parameter<string> Gemiddelde_rekenkundig := 'mean(NVM/Types_'+type_name+'/@TW@/Subset/@VT@[float32])';
+			parameter<string> Gemiddelde_meetkundig  := 'exp(mean(log(NVM/Types_'+type_name+'/@TW@/Subset/@VT@[float32])))';
+			parameter<string> Nationaal_rekenkundig  := 'union_data(domain,'+AsItemList(replace(const(Gemiddelde_rekenkundig, domain), '@TW@', domain/name))+')';
+			parameter<string> Nationaal_perceel      := 'union_data(domain,'+AsItemList(replace(domain/name == 'appartement' ? Gemiddelde_rekenkundig : Gemiddelde_meetkundig, '@TW@', domain/name))+')';
+
+			container MakeNationalAvgCharacteristics :=
 				for_each_nedv(
 					HouseCharacteristics/name,
 					replace(
-						'union_data('
-							'domain,'+
-							AsItemList(
-								replace(
-									'mean(NVM/Types_'+type_name+'/@TW@/Subset/@VT@[float32])',
-									'@TW@', domain/name
-								)
-							)+
-						')',
+						HouseCharacteristics/name == 'lotsize' ? Nationaal_perceel : Nationaal_rekenkundig,
 						'@VT@', HouseCharacteristics/name
 					),
 					domain, float32
@@ -203,15 +203,21 @@ container NVM: using = "Units"
 				parameter<string> WP_type_str;
 				//
 				parameter<string> distance_decay_type := 'rev_dist_scaled';
-				
-				unit<uint32> NVM_Data := ='NVM/Types_'+WP_type_str+'/'+WP+'/Subset' 
+				// meetkundig gemiddelde voor het perceel van de grondgebonden types (zie Gemiddelde_meetkundig hierboven)
+				parameter<bool>   meetkundig          := HouseChar == 'lotsize' && WP != 'appartement';
+
+				unit<uint32> NVM_Data := ='NVM/Types_'+WP_type_str+'/'+WP+'/Subset'
 				{
-					attribute<float32> Sum_attribute_ha    (rdc_25m) := ='sum('+HouseChar+'[float32], rdc_25m_rel)';
+					attribute<float32> Sum_attribute_ha    (rdc_25m) := ='sum('+(meetkundig ? 'log('+HouseChar+'[float32])' : HouseChar+'[float32]')+', rdc_25m_rel)';
 					attribute<float32> Count_attribute_ha  (rdc_25m) := ='count('+HouseChar+', rdc_25m_rel)[float32]';
 					attribute<float32> Potential_sum       (rdc_25m) := ='potential(Sum_attribute_ha, /Geography/Distmatrices_25m/pot5000m/'+distance_decay_type+')';  //Geography/Distmatrices/Impl_25m/pot5000m/potrange/rev_dist_scaled
 					attribute<float32> Potential_count     (rdc_25m) := ='potential(Count_attribute_ha, /Geography/Distmatrices_25m/pot5000m/'+distance_decay_type+')';
 					
-					attribute<float32> Potential (rdc_25m) := Potential_sum / Potential_count;
+					// Waar het gewogen aantal verkopen klein is, zijn som en aantal van de potential onbetrouwbaar en
+					// blaast exp() de ruis op; daar blijft het meetkundige gemiddelde leeg (afnemers: landelijk gemiddelde)
+					attribute<float32> Potential (rdc_25m) := =meetkundig
+						? 'Potential_count >= ModelParameters/Perceel_min_verkopen ? exp(Potential_sum / Potential_count) : null_f'
+						: 'Potential_sum / Potential_count';
 				} 
 			}
 			
