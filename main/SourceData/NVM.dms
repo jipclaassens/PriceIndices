@@ -1,8 +1,7 @@
 container NVM: using = "Units"
 {
 	parameter<string> nvm_filedate       := ModelParameters/nvm_filedate;
-	parameter<string> dir := 'C:/Users/JipClaassens/OneDrive - Objectvision/VU/Projects/NVM Prijsindex/EnhancedData'; // OVSRV08
-	// parameter<string> dir := 'D:/OneDrive - Objectvision/VU/Projects/NVM Prijsindex/EnhancedData'; // OVSRV06
+	parameter<string> dir                := '%env:OneDriveCommercial%/VU/Projects/NVM Prijsindex/EnhancedData';
 	parameter<string> csv_filename       := dir+'/NVM_1985_2023_cleaned_geocoded_'+nvm_filedate+'_slim.csv';
 	parameter<string> fss_filename       := '%LocalDataDir%/NVM/nvm_'+nvm_filedate;
 
@@ -64,7 +63,8 @@ container NVM: using = "Units"
 		
 		attribute<eur>           price                 := NVM_Data/transactieprijs[eur];
 		attribute<meter2>        size                  := NVM_Data/oppervlak[meter2];
-		attribute<meter2>        lotsize               := NVM_Data/perceel[meter2] >= 99999[meter2] ? null_f : NVM_Data/perceel[meter2];
+		attribute<meter2>        lotsize_src           := NVM_Data/perceel[meter2] >= 99999[meter2] ? null_f : NVM_Data/perceel[meter2], Descr = "Perceel zoals geleverd, zonder de sentinel 99999; bepaalt de deelverzameling per woningtype.";
+		attribute<meter2>        lotsize               := d_apartment == 0[uint2] && lotsize_src <= ModelParameters/Perceel_onbekend_max ? null_f : lotsize_src, Descr = "Perceel voor de regionale en nationale gemiddelden: een onbekend perceel van een grondgebonden woning telt niet mee (R/README.md, afwijking 10).";
 		attribute<jaar>          trans_year            := value(NVM_Data/trans_year, int16)[jaar];
 		attribute<int16>         trans_month           := value(NVM_Data/trans_month, int16);
 		attribute<jaar>          buildingyear          := NVM_Data/bouwjaar[jaar];
@@ -143,11 +143,9 @@ container NVM: using = "Units"
 		//
 		parameter<string> type;
 		//
-		unit<uint32> subset := ='select_with_org_rel_with_attr_by_cond(Result, Result/d_' +string(type)+ '[uint2] == 1[uint2] && Result/lotsize[meter2] < 99999[meter2])'
-		{
-			// attribute<rdc_meter>    geometry           := Result/geometry[org_rel];
-			attribute<rdc_25m>      rdc_25m_rel        := geometry[rdc_25m];
-		}
+		// with_attr neemt alle attributen van Result mee, ook geometry en rdc_25m_rel; een eigen declaratie
+		// daarvan botst vanaf GeoDMS 20.12 ("Cannot set calculation rule")
+		unit<uint32> subset := ='select_with_org_rel_with_attr_by_cond(Result, Result/d_' +string(type)+ '[uint2] == 1[uint2] && Result/lotsize_src[meter2] < 99999[meter2])';
 	}
 	
 	container RegionalAverages
@@ -186,7 +184,7 @@ container NVM: using = "Units"
 						'@VT@', HouseCharacteristics/name
 					),
 					domain, float32
-				), StorageName = "='%PrivDataDir%/NVM_Nationalekarakteristieken_'+Modelparameters/nvm_filedate+'/'+type_name+'.fss'";
+				), StorageName = "='%LocalDataDir%/PriceIndices/NVM_Nationalekarakteristieken_'+Modelparameters/kenmerken_filedate+'/'+type_name+'.fss'";
 					
 				 
 			container CalcRegionalAvgCharacteristics := 
@@ -224,7 +222,7 @@ container NVM: using = "Units"
 					, rdc_25m
 					, comb
 					, comb/ValueType
-					, '%PrivDataDir%/NVM_Regiokarakteristieken_'+Modelparameters/nvm_filedate+'/'+type_name+'/'+comb/name+'.tif'
+					, '%LocalDataDir%/PriceIndices/NVM_Regiokarakteristieken_'+Modelparameters/kenmerken_filedate+'/'+type_name+'/'+comb/name+'.tif'
 					, 'tif'
 				)
 			{

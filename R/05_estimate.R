@@ -27,11 +27,16 @@ suppressPackageStartupMessages(library(fixest))
 ## ---------------------------------------------------------------------------
 maak_spec <- function(name, input_variant, covars_loc,
                       types = c("apartment", "terraced", "semidetached", "detached"),
-                      min_year = 2000, limit = FALSE, onbekend_dummies = FALSE) {
+                      min_year = 2000, limit = FALSE, onbekend_dummies = FALSE, spline = FALSE) {
   list(name = name, input_variant = input_variant, covars_loc = covars_loc,
        types = types, min_year = min_year, limit = limit,
-       onbekend_dummies = onbekend_dummies)
+       onbekend_dummies = onbekend_dummies, spline = spline)
 }
+
+# Lineaire spline in ln(oppervlakte): per knoop k (cfg$spline_knopen_m2) een term
+# lnsize_knik<k> = max(lnsize - ln(k), 0); de helling verandert bij elke knoop en blijft
+# buiten de buitenste knopen recht (geen kromming waar weinig data is).
+knik_termen <- function(type) paste0("lnsize_knik", cfg$spline_knopen_m2[[type]])
 
 specs_alle <- list(
   # Validatie: zelfde variabelen en gedrag als de Stata-run van 20251024 (legacy-input)
@@ -84,7 +89,13 @@ specs_alle <- list(
   # RS leest hem niet en Redevelopment gebruikt vol model + reg_*-regiogemiddelden.
   # Alleen draaien als sensitiviteit: specs_actief <- "redev_limit"
   redev_limit = maak_spec("redev_limit", "pipeline", c("lntt_500k_2024", "lntt_ovknoop", "uai_2012"),
-                          limit = TRUE, onbekend_dummies = TRUE)
+                          limit = TRUE, onbekend_dummies = TRUE),
+  # rs_groen met een lineaire spline in ln(oppervlakte) (2026-10-11): de elasticiteit van de
+  # oppervlakte stijgt met de grootte bij appartementen en rijtjeswoningen en daalt bij vrijstaand;
+  # een kwadraat in ln past even goed maar schiet in de staarten door. Niet in de default-run.
+  rs_groen_spline = maak_spec("rs_groen_spline", "pipeline", c("lntt_500k_2024", "lntt_ovknoop", "uai_2012",
+                                                           "fr_natuur_tot2500m", "fr_water_500m"),
+                          onbekend_dummies = TRUE, spline = TRUE)
 )
 if (!exists("specs_actief")) specs_actief <- c("redev", "rs_groen")
 
@@ -93,6 +104,7 @@ if (!exists("specs_actief")) specs_actief <- c("redev", "rs_groen")
 ## ---------------------------------------------------------------------------
 rhs_voor <- function(spec, type) {
   c("lnsize",
+    if (isTRUE(spec$spline)) knik_termen(type),
     if (!spec$limit && type != "apartment") "lnlotsize",
     # missing-indicator voor een onbekend perceel (perceel 0 of leeg; README, afwijking 10)
     if (!spec$limit && type != "apartment" && isTRUE(spec$onbekend_dummies)) "d_perceel_onbekend",
@@ -131,6 +143,8 @@ for (sp_naam in specs_actief) {
     dat <- a[building_type == tp & trans_year >= spec$min_year]
     # factor pas na de sample-selectie: referentie = laagste jaar in de sample
     dat[, trans_year_f := factor(trans_year)]
+    if (isTRUE(spec$spline))
+      for (k in cfg$spline_knopen_m2[[tp]]) dat[, (paste0("lnsize_knik", k)) := pmax(lnsize - log(k), 0)]
     fml <- as.formula(paste("lnprice ~", paste(rhs_voor(spec, tp), collapse = " + ")))
     m <- feols(fml, data = dat, vcov = "hetero")   # HC1, zoals Stata's ', r'
 

@@ -53,7 +53,13 @@ daarom niet in een waarderings-indicator. Sensitiviteiten: `rs_groen_donut`
 zes-categorieën-set; hogere R² maar implausibele tekens).
 
 Sensitiviteiten (niet in de default-run): `redev_tt2020` (oude 500m-reistijd
-i.p.v. de 2024-versie) en `redev_limit` (alleen `lnsize` als objectkenmerk).
+i.p.v. de 2024-versie), `redev_limit` (alleen `lnsize` als objectkenmerk) en
+`rs_groen_spline` (2026-10-11): `rs_groen` met een lineaire spline in
+ln(oppervlakte), knopen per woningtype in `cfg$spline_knopen_m2` (p10, p50 en
+p90 van de oppervlakte). De elasticiteit van de oppervlakte stijgt met de grootte
+bij appartementen en rijtjeswoningen en daalt bij vrijstaande woningen; een
+kwadraat in ln past even goed, maar schiet in de staarten door, de spline loopt
+buiten de buitenste knopen recht door.
 Draaien met `specs_actief <- "redev_tt2020"` vóór `source("05_estimate.R")`.
 
 **Keuze tt_500k (2026-07-14)**: de 2024-versie
@@ -66,7 +72,8 @@ beter voor vrijstaand; de 2024-reistijden hebben een dikkere rechterstaart
 ## Output-format estimates
 
 `term;estimate;std_error;t_value;p_value;ci_low;ci_high` met expliciete
-termnamen: `lnsize`, `lnlotsize`, `d_perceel_onbekend` (vanaf ronde 20261011;
+termnamen: `lnsize`, `lnsize_knik<k>` (alleen spline-specs: max(lnsize - ln(k), 0)
+met k in m2), `lnlotsize`, `d_perceel_onbekend` (vanaf ronde 20261011;
 bij voorspellen met een bekend perceel 0), `nrooms`, `d_maintgood`, `d_highrise`,
 `bouwperiode_1926_1950` … (referentie `va2002`), `trans_year_2012` …
 (referentie = eerste sample-jaar), `lntt_500k`, `lntt_station`, `uai`,
@@ -119,10 +126,14 @@ meer — de namen zijn direct geldige GeoDMS-itemnamen. Per run komt er ook een
    in spec redev was de perceelelasticiteit 0,021 / 0,029 / 0,093 (rijtjes /
    2^1kap / vrijstaand). Nu krijgen ze de indicator `d_perceel_onbekend` en
    ln(perceel) = 0 (grens `cfg$perceel_onbekend_max_m2`); specs met
-   `onbekend_dummies` nemen de indicator op, net als `06_volatility.R`. De
-   legacy-variant blijft Stata-gelijk. Nog open: de regionale gemiddelden van het
-   perceel (`main/SourceData/NVM.dms`, `RegionalAverages`) tellen perceel 0 nog
-   mee en liggen daardoor landelijk 1 tot 4% te laag.
+   `onbekend_dummies` nemen de indicator op, net als `06_volatility.R` (die
+   sindsdien ook onder `cfg$est_tag` schrijft). De legacy-variant blijft
+   Stata-gelijk. De regionale en nationale gemiddelden van het perceel
+   (`main/SourceData/NVM.dms`, `RegionalAverages`) telden perceel 0 mee en lagen
+   daardoor landelijk 1 tot 4% te laag; vanaf vintage 20261011
+   (`ModelParameters/kenmerken_filedate`) tellen onbekende percelen van
+   grondgebonden woningen niet meer mee. De andere 17 tifs van 20261011 zijn
+   bit voor bit gelijk aan die van 20260711.
 
 ## Validatie
 

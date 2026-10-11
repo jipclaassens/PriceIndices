@@ -18,8 +18,9 @@
 # gemeente-korrel dient als robuustheidsanker; een repeat-sales-variant (houseid)
 # kan later als sensitiviteit.
 #
-# Output: Output/Volatility_<tag>_{gemeente,pc4,grid5km}.csv (;-gescheiden) met
-# regio;n_trans;n_jaarindex;n_groei;vol_dlnp;mean_dlnp
+# Output: Output/Volatility_<est_tag>_{gemeente,pc4,grid5km}.csv (;-gescheiden) met
+# regio;n_trans;n_jaarindex;n_groei;vol_dlnp;mean_dlnp. De naam volgt de schattingsronde
+# (cfg$est_tag), want het residumodel hoort bij dezelfde ronde als stap 05.
 
 if (!exists(".ri_script_dir")) {
   f <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE))
@@ -65,7 +66,7 @@ bereken_vol <- function(dt, korrel) {
   vol <- idxtab[, .(n_trans = sum(n), n_jaarindex = .N, n_groei = sum(!is.na(g)),
                     vol_dlnp = sd(g, na.rm = TRUE), mean_dlnp = mean(g, na.rm = TRUE)), by = regio]
   vol <- vol[n_groei >= vol_min_groeijaren]
-  bestand <- file.path(cfg$dir_output, sprintf("Volatility_%s_%s.csv", cfg$tag, korrel))
+  bestand <- file.path(cfg$dir_output, sprintf("Volatility_%s_%s.csv", cfg$est_tag, korrel))
   fwrite(vol, bestand, sep = ";")
   ri_log("%-8s: %s regio's (mediaan vol %.4f, p10 %.4f, p90 %.4f) -> %s",
          korrel, format(nrow(vol), big.mark = ","), median(vol$vol_dlnp),
@@ -93,7 +94,7 @@ bereken_vol_rolling <- function(dt, korrel) {
   grid[, vol_roll5 := frollapply(g, 5, function(v) if (sum(!is.na(v)) >= 4) sd(v, na.rm = TRUE) else NA_real_), by = regio]
   grid[, g_roll5   := frollapply(g, 5, function(v) if (sum(!is.na(v)) >= 4) mean(v, na.rm = TRUE) else NA_real_), by = regio]
   uit <- grid[!is.na(vol_roll5), .(regio, besluitjaar = jaar + 1L, vol_roll5, g_roll5)]
-  bestand <- file.path(cfg$dir_output, sprintf("Volatility_rolling_%s_%s.csv", cfg$tag, korrel))
+  bestand <- file.path(cfg$dir_output, sprintf("Volatility_rolling_%s_%s.csv", cfg$est_tag, korrel))
   fwrite(uit, bestand, sep = ";")
   ri_log("rolling %-13s: %s regio-jaren (%s regio's), besluitjaren %d-%d -> %s",
          korrel, format(nrow(uit), big.mark = ","), format(uniqueN(uit$regio), big.mark = ","),

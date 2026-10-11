@@ -3,6 +3,8 @@ container PriceIndices
 	container ModelParameters : using = "units"
 	{
 		parameter<string> nvm_filedate       := '20260711';  //20251024 20250520 20240926
+		parameter<string> kenmerken_filedate := '20261011', Descr = "Vintage van de regionale en nationale woningkenmerken die deze configuratie schrijft (onder %LocalDataDir%/PriceIndices); 20261011 telt een onbekend perceel van een grondgebonden woning niet mee in het perceelgemiddelde (R/README.md, afwijking 10).";
+		parameter<meter2> Perceel_onbekend_max := 1[meter2], Descr = "Een grondgebonden woning met een perceel tot en met deze oppervlakte (0 en de plaatshouder 1 m2) heeft een onbekend perceel; gelijk aan cfg$perceel_onbekend_max_m2 in R/00_config.R.";
 		parameter<string> Regio_jaar         := '2023';
 		parameter<string> LGN_year           := '2024', Descr = "LGN-vintage voor de groenfracties (issues RSopen#566/#481); leest de door RSopen gegenereerde LGN<jaar>_m25.tif";
 		parameter<string> BGT_file_date     := '20251117', Descr = "BGT-vintage voor de fr_groen-fractie (RSopen#566); leest de door RSopen gegenereerde GroenOpp_<date>_Per_AdminDomain_Nederland.tif";

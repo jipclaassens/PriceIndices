@@ -28,3 +28,12 @@ de RuimteScanner — nooit overschrijven; nieuwe runs krijgen een nieuwe versiet
 
 R 4.5.x: `"C:/Program Files/R/R-4.5.3/bin/Rscript.exe" R/run_all.R` (stap 1–3),
 na de GeoDMS-run `... R/run_all.R 4 5`. Configuratie in `R/00_config.R`.
+
+GeoDMS: GeoDmsRun 20.12.0.m (20.8.0.m crasht sinds oktober 2026 op OVSRV08 bij
+elke opslag). De regionale en nationale woningkenmerken komen uit
+`/SourceData/NVM/RegionalAverages/per_WP_type/WP4/MakeNationalAvgCharacteristics`
+en `.../MakeRegionalAvgCharacteristics` en gaan naar
+`%LocalDataDir%/PriceIndices/NVM_*karakteristieken_<kenmerken_filedate>`; de
+RuimteScanner en het EconLogic-paper lezen ze uit
+`%SourceDataDir%/RuimteScanner/SD/RSopen/Vastgoed` (OVSRV08), dus na controle
+daarheen kopiëren onder een nieuwe datum. SourceData is schrijf-eenmaal.

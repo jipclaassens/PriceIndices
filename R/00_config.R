@@ -82,6 +82,13 @@ cfg$hoogbouwgrens_cm    <- 1500   # bag_pand_hoogte >= 15 m => d_highrise
 # Grondgebonden woning met perceel <= dit (0 en de plaatshouder 1 m2) of zonder perceel: perceel
 # onbekend (d_perceel_onbekend). Zie README, afwijking 10.
 cfg$perceel_onbekend_max_m2 <- 1
+# Knopen (m2) van de lineaire spline in ln(oppervlakte) voor specs met spline = TRUE: p10, p50 en p90
+# van de oppervlakte per woningtype in de schattingssample 2000-2023 (gemeten 2026-10-11), afgerond.
+# Vast, zodat RS en het paper dezelfde termen narekenen: lnsize_knik<k> = max(lnsize - ln(k), 0).
+cfg$spline_knopen_m2 <- list(apartment    = c(55, 80, 123),
+                             terraced     = c(85, 118, 155),
+                             semidetached = c(93, 131, 180),
+                             detached     = c(95, 153, 251))
 cfg$seed             <- 20260711
 
 ## -- outputopties --------------------------------------------------------------
