@@ -20,7 +20,11 @@ prijsindices per woningtype (WP4). Vervangt de Stata-scripts in `../Stata/`
 Draaien: `Rscript R/run_all.R` (stap 1–3), na de GeoDMS-run `Rscript R/run_all.R 4 5`.
 Alle paden/parameters staan in `00_config.R`; de versietag `cfg$tag` zit in alle
 outputnamen, zodat oude bestanden (o.a. de door RS gebruikte
-`Estimates_20251024_*.csv`) nooit worden overschreven.
+`Estimates_20251024_*.csv`) nooit worden overschreven. Een nieuwe schatting op
+dezelfde data krijgt een eigen schattingstag `cfg$est_tag` in de
+Estimates-namen (stap 05): `Estimates_<est_tag>_<spec>_<type>.csv`. Ronde
+20260711 is de eerste op deze data, ronde 20261011 telt perceel 0 als onbekend
+(afwijking 10).
 
 ## Specs (stap 5)
 
@@ -62,7 +66,8 @@ beter voor vrijstaand; de 2024-reistijden hebben een dikkere rechterstaart
 ## Output-format estimates
 
 `term;estimate;std_error;t_value;p_value;ci_low;ci_high` met expliciete
-termnamen: `lnsize`, `lnlotsize`, `nrooms`, `d_maintgood`, `d_highrise`,
+termnamen: `lnsize`, `lnlotsize`, `d_perceel_onbekend` (vanaf ronde 20261011;
+bij voorspellen met een bekend perceel 0), `nrooms`, `d_maintgood`, `d_highrise`,
 `bouwperiode_1926_1950` … (referentie `va2002`), `trans_year_2012` …
 (referentie = eerste sample-jaar), `lntt_500k`, `lntt_station`, `uai`,
 `d_groennabij`, `constant`. Geen Stata-parmest-namen (`1.construction_period`)
@@ -105,6 +110,19 @@ meer — de namen zijn direct geldige GeoDMS-itemnamen. Per run komt er ook een
    nu ook geschoond. Let op: elke wijziging in de schoningslogica verschuift
    `trans_id`'s ⇒ nieuwe `cfg$tag` zetten en opnieuw geocoderen; de
    integriteitscheck in 04a dwingt dit af.
+10. **Perceel 0 is onbekend, geen 1 m2** (2026-10-11). Stata zette perceel 0 op
+   1 m2, zodat ln(perceel) = 0. Bij grondgebonden woningen is perceel 0 (of de
+   plaatshouder 1 m2) een ontbrekende waarde: in de oude levering (pre2022) geldt
+   het voor 15% van de vrijstaande, 35% van de 2^1kap- en 44% van de
+   rijtjeswoningen, in Brainbay voor 0,2 tot 1,5%, en die woningen worden
+   geprijsd alsof ze een gewoon perceel hebben. Als ln 0 drukten ze de helling:
+   in spec redev was de perceelelasticiteit 0,021 / 0,029 / 0,093 (rijtjes /
+   2^1kap / vrijstaand). Nu krijgen ze de indicator `d_perceel_onbekend` en
+   ln(perceel) = 0 (grens `cfg$perceel_onbekend_max_m2`); specs met
+   `onbekend_dummies` nemen de indicator op, net als `06_volatility.R`. De
+   legacy-variant blijft Stata-gelijk. Nog open: de regionale gemiddelden van het
+   perceel (`main/SourceData/NVM.dms`, `RegionalAverages`) tellen perceel 0 nog
+   mee en liggen daardoor landelijk 1 tot 4% te laag.
 
 ## Validatie
 

@@ -42,7 +42,7 @@ ri_log("Transacties %d-2023: %s", vol_min_year, format(nrow(dt), big.mark = ",")
 dt[, resid_ := NA_real_]
 for (type in c("apartment", "terraced", "semidetached", "detached")) {
   rhs <- c("lnsize",
-           if (type != "apartment") "lnlotsize",
+           if (type != "apartment") c("lnlotsize", "d_perceel_onbekend"),
            "nrooms", "d_maintgood", "bouwperiode",
            if (type == "apartment") c("d_highrise", "d_hoogte_onbekend"))
   idx <- dt[, which(building_type == type & complete.cases(.SD)), .SDcols = rhs]

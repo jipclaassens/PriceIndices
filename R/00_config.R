@@ -16,10 +16,15 @@ cfg <- list()
 
 ## -- versietag: onderdeel van alle outputbestandsnamen van deze run ---------
 cfg$tag <- "20260711"
+# Schattingsronde (stap 05): een nieuwe schatting op dezelfde data krijgt een eigen tag in de
+# Estimates-namen, zodat bestanden die RS en het EconLogic-paper lezen nooit worden overschreven.
+# 20261011: perceel 0 telt als onbekend (d_perceel_onbekend), zie README afwijking 10.
+cfg$est_tag <- "20261011"
 
 ## -- databronnen (OneDrive-projectmap, machine-onafhankelijk gezocht) --------
 cfg$dir_project <- {
   cand <- c("D:/OneDrive - Objectvision",             # OVSRV06 (C:-variant is een dode oude root)
+            "E:/OneDrive - Objectvision",             # OVSRV08
             "C:/Users/JipClaassens/OneDrive - Objectvision",
             "D:/OneDrive/OneDrive - Objectvision")
   hit <- cand[dir.exists(cand)]
@@ -74,6 +79,9 @@ cfg$maxrooms    <- 25
 cfg$maint_na_as_good    <- FALSE
 cfg$highrise_na_as_high <- FALSE
 cfg$hoogbouwgrens_cm    <- 1500   # bag_pand_hoogte >= 15 m => d_highrise
+# Grondgebonden woning met perceel <= dit (0 en de plaatshouder 1 m2) of zonder perceel: perceel
+# onbekend (d_perceel_onbekend). Zie README, afwijking 10.
+cfg$perceel_onbekend_max_m2 <- 1
 cfg$seed             <- 20260711
 
 ## -- outputopties --------------------------------------------------------------

@@ -88,6 +88,13 @@ a[!is.na(bouwjaar) & bouwjaar < 1000, bouwjaar := NA]
 a[!is.na(bouwjaar) & bouwjaar < 1600, bouwjaar := 1600]
 a[!is.na(lotsize)  & lotsize >= 99999, lotsize := NA]
 a[!is.na(tt_station_min) & tt_station_min < 1, tt_station_min := 1]
+# Perceel 0 (en de plaatshouder 1 m2) is bij een grondgebonden woning een ontbrekende waarde, geen
+# woning zonder grond: in de oude NVM-levering (pre2022) geldt het voor 15 tot 44% van de woningen,
+# in Brainbay voor 0,2 tot 1,5%, en zulke woningen worden geprijsd alsof ze een gewoon perceel hebben.
+# Als ln(1) = 0 drukten ze de perceelelasticiteit (redev, rijtjes: 0,021 tegen 0,135 met indicator).
+# De hercodering naar 1 m2 hieronder blijft staan voor de legacy-validatie.
+a[, d_perceel_onbekend := as.integer(!is.na(building_type) & building_type != "apartment" &
+                                     (is.na(lotsize) | lotsize <= cfg$perceel_onbekend_max_m2))]
 a[!is.na(lotsize)  & lotsize == 0, lotsize := 1]
 for (v in intersect(c("tt_ovknoop_min", "tt_500k_2024_min"), names(a))) {
   a[!is.na(get(v)) & get(v) < 1, (v) := 1]   # log-transform: minimaal 1 minuut
@@ -99,6 +106,8 @@ for (v in intersect(c("tt_ovknoop_min", "tt_500k_2024_min"), names(a))) {
 a[, lnprice      := log(price)]
 a[, lnsize       := log(size)]
 a[, lnlotsize    := log(lotsize)]
+# onbekend perceel: ln(perceel) = 0 en het niveau zit in d_perceel_onbekend (legacy blijft Stata-gelijk)
+if (variant_04 == "pipeline") a[d_perceel_onbekend == 1L, lnlotsize := 0]
 a[, lntt_500k    := log(tt_500k_min)]
 a[, lntt_station := log(tt_station_min)]
 a[, pricem2      := price / size]

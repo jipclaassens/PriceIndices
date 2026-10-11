@@ -6,7 +6,7 @@
 # nieuwbouw). Nieuwe varianten = nieuwe spec, geen gekopieerd script.
 #
 # Model (vertaling van PrijsIndex_tbv_RS.do):
-#   lnprice ~ lnsize [+ lnlotsize] [+ nrooms] [+ d_highrise (app)] + d_maintgood
+#   lnprice ~ lnsize [+ lnlotsize + d_perceel_onbekend] [+ nrooms] [+ d_highrise (app)] + d_maintgood
 #             + bouwperiode-dummies (ref: va2002) + transactiejaar-dummies
 #             + locatievariabelen,     OLS met heteroskedastie-robuuste SE (HC1)
 #
@@ -94,6 +94,8 @@ if (!exists("specs_actief")) specs_actief <- c("redev", "rs_groen")
 rhs_voor <- function(spec, type) {
   c("lnsize",
     if (!spec$limit && type != "apartment") "lnlotsize",
+    # missing-indicator voor een onbekend perceel (perceel 0 of leeg; README, afwijking 10)
+    if (!spec$limit && type != "apartment" && isTRUE(spec$onbekend_dummies)) "d_perceel_onbekend",
     if (!spec$limit) "nrooms",
     if (type == "apartment") "d_highrise",
     # missing-indicator voor onbekende pandhoogte (zie README, afwijking 6)
@@ -134,7 +136,7 @@ for (sp_naam in specs_actief) {
 
     uit <- tidy_fixest(m)
     bestand <- file.path(cfg$dir_output,
-                         sprintf("Estimates_%s_%s_%s.csv", cfg$tag, spec$name, tp))
+                         sprintf("Estimates_%s_%s_%s.csv", cfg$est_tag, spec$name, tp))
     fwrite(uit, bestand, sep = ";")
     ri_log("%-12s %-13s n=%9s  R2=%.4f  -> %s", spec$name, tp,
            format(m$nobs, big.mark = ","), r2(m, "r2"), basename(bestand))
@@ -149,7 +151,7 @@ for (sp_naam in specs_actief) {
 }
 
 info <- rbindlist(modelinfo)
-info_bestand <- file.path(cfg$dir_output, sprintf("Estimates_%s_modelinfo.csv", cfg$tag))
+info_bestand <- file.path(cfg$dir_output, sprintf("Estimates_%s_modelinfo.csv", cfg$est_tag))
 if (file.exists(info_bestand)) {
   # regels van eerder gedraaide specs behouden; nu-gedraaide overschrijven
   oud <- fread(info_bestand, sep = ";", colClasses = list(character = "run_datum"))

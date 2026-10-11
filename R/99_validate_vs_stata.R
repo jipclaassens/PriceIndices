@@ -37,7 +37,7 @@ map_parm <- function(parm) {
 vergelijk <- function(type, limit = FALSE) {
   f_stata <- file.path(cfg$dir_output, sprintf("Estimates_%s_%s%s.csv", stata_tag, type,
                                                fifelse(limit, "_limit", "")))
-  f_r     <- file.path(cfg$dir_output, sprintf("Estimates_%s_%s_%s.csv", cfg$tag,
+  f_r     <- file.path(cfg$dir_output, sprintf("Estimates_%s_%s_%s.csv", cfg$est_tag,
                                                fifelse(limit, "rsval_limit", "rsval"), type))
   if (!file.exists(f_stata) || !file.exists(f_r)) {
     ri_log("OVERGESLAGEN %s (limit=%s): bestand ontbreekt", type, limit); return(NULL)
