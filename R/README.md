@@ -142,7 +142,12 @@ meer — de namen zijn direct geldige GeoDMS-itemnamen. Per run komt er ook een
    terug op het landelijke gemiddelde. Appartementen houden het rekenkundige
    gemiddelde (geen perceelterm). De andere 17 tifs van 20261011 (alle
    kenmerken behalve het perceel van de drie grondgebonden types) zijn bit voor
-   bit gelijk aan die van 20260711.
+   bit gelijk aan die van 20260711. Sinds de samenvoeging met de cleanup van
+   17-08 selecteert de deelverzameling per woningtype niet meer op een bekend
+   perceel, zodat ook verkopen zonder perceel meetellen in de andere kenmerken.
+   Vintage 20261011 is daarvoor gemaakt; de volgende generatie heet 20261013 en
+   wijkt nationaal pas in de derde of vierde decimaal af (grootste verschil:
+   oppervlakte appartement 87,52 naar 87,33 m2), het perceel blijft gelijk.
 
 ## Validatie
 
