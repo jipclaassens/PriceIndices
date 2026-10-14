@@ -19,7 +19,8 @@ cfg$tag <- "20260711"
 # Schattingsronde (stap 05): een nieuwe schatting op dezelfde data krijgt een eigen tag in de
 # Estimates-namen, zodat bestanden die RS en het EconLogic-paper lezen nooit worden overschreven.
 # 20261011: perceel 0 telt als onbekend (d_perceel_onbekend), zie README afwijking 10.
-cfg$est_tag <- "20261011"
+# 20261014: bouwperiodeklasse 9 van de oude levering in va2002 en BAG-kenmerken alleen bij een adresmatch, afwijking 11.
+cfg$est_tag <- "20261014"
 
 ## -- databronnen (OneDrive-projectmap, machine-onafhankelijk gezocht) --------
 cfg$dir_project <- {
