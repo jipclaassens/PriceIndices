@@ -79,6 +79,13 @@ n0 <- nrow(geo)
 geo <- geo[!is.na(x) & !is.na(y) & x >= 0 & x <= 280000 & y >= 300000 & y <= 625000]
 ri_log("Filter x/y binnen NL:      -%s rijen", format(n0 - nrow(geo), big.mark = ","))
 
+# BAG-kenmerken alleen bij een match op adresniveau (1..10): bij een match op straat of PC6 (11..13)
+# horen bouwjaar, hoogte, footprint en vbo-oppervlak bij een ander gebouw. De coordinaten blijven,
+# want die zijn op dat niveau bedoeld als benadering. Raakt vooral nieuwbouwadressen uit de oude
+# levering die de BAG nog niet kende (README, afwijking 11).
+geo[niveau_code > cfg$geocode_max_niveau_bagkenmerken,
+    c("bag_pand_bouwjaar", "bag_pand_hoogte", "bag_pand_footprint", "bag_vbo_oppervlak") := NA]
+
 ## ---------------------------------------------------------------------------
 ## 5. Koppelen en consolideren
 ## ---------------------------------------------------------------------------

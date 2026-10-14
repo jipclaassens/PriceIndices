@@ -42,9 +42,14 @@ oud[, building_type := fcase(type %in% c(-1, 0), "apartment",
                              type %in% 5,        "detached",
                              default = NA_character_)]
 
-# bouwjaar: alleen NVM-bouwperiodeklasse beschikbaar (BAG-bouwjaar volgt in stap 04)
+# bouwjaar: alleen NVM-bouwperiodeklasse beschikbaar (BAG-bouwjaar volgt in stap 04a)
+# Klassen volgens nvm_19852016_xy_metadata.xls: 1 1500-1905, 2 1906-1930, 3 1931-1944, 4 1945-1959,
+# 5 1960-1970, 6 1971-1980, 7 1981-1990, 8 1991-2000, 9 2001 en later. Klasse 9 krijgt 2002 en niet
+# 2001: de hedonische klassegrenzen (04_import_spatial.R) leggen 2001 in 1992_2001, zodat alle
+# nieuwbouw uit de oude levering zonder BAG-bouwjaar (vooral de v.o.n.-verkopen, die op PC6-niveau
+# geocoderen) in de verkeerde bouwperiode viel; met 2002 landt zij in de referentieklasse va2002.
 bw_mid <- c(`1` = 1900, `2` = 1920, `3` = 1935, `4` = 1950, `5` = 1965,
-            `6` = 1975, `7` = 1985, `8` = 1995, `9` = 2001)
+            `6` = 1975, `7` = 1985, `8` = 1995, `9` = 2002)
 oud[, bouwjaar := unname(bw_mid[as.character(bwper)])]
 oud[, bouwjaar_src := fifelse(!is.na(bouwjaar), "nvm_bouwperiode", NA_character_)]
 

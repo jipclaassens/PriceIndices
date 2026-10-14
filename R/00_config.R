@@ -103,6 +103,9 @@ cfg$file_geocoded <- file.path(cfg$dir_project, "Temp",
 # (1-10 = huisnummer-niveau, 11-12 = straat, 13 = PC6, 14+ = PC5/PC4/woonplaats).
 # De oude Stata-flow filterde hier niet op; sensitiviteit (bv. <=10) via specs.
 cfg$geocode_max_niveau <- 13L
+# tot en met dit matchniveau gelden de BAG-kenmerken (bouwjaar, hoogte, footprint, vbo-oppervlak) als
+# die van de verkochte woning; daarboven (straat, PC6) horen ze bij een ander gebouw en vallen ze weg
+cfg$geocode_max_niveau_bagkenmerken <- 10L
 
 ## -- afgeleide bestandsnamen ----------------------------------------------------
 cfg$file_01_merged  <- file.path(cfg$dir_work, sprintf("01_merged_%s.rds", cfg$tag))

@@ -148,6 +148,29 @@ meer — de namen zijn direct geldige GeoDMS-itemnamen. Per run komt er ook een
    Vintage 20261011 is daarvoor gemaakt; de volgende generatie heet 20261013 en
    wijkt nationaal pas in de derde of vierde decimaal af (grootste verschil:
    oppervlakte appartement 87,52 naar 87,33 m2), het perceel blijft gelijk.
+11. **Nieuwbouw uit de oude levering viel in de verkeerde bouwperiode** (2026-10-14).
+   De oude levering kent alleen de bouwperiodeklasse (`bwper`); klasse 9 is
+   2001 en later (codelijst `Brondata/Archief/nvm_19852016_xy_metadata.xls`) en
+   kreeg in stap 01 het klassemidden 2001, dat in de hedonische klassegrenzen
+   (`(1991, 2001]`) in 1992_2001 valt in plaats van in de referentieklasse
+   va2002. Het raakt vooral de nieuwbouwverkopen van de oude levering
+   (`isnieuwbouw` 1, bijna altijd met verkoopconditie 2, vrij op naam): die
+   adressen bestonden bij verkoop nog niet in de BAG, geocoderen op PC6-niveau
+   (niveau 13) en hebben daardoor geen BAG-bouwjaar. In de schattingsset
+   2000-2023 gaat het om circa 112.000 transacties (89.000 met de klasse als bron
+   en 23.000 via een ander record van dezelfde woning). Klasse 9 krijgt nu 2002.
+   In een proefschatting op de huidige analyseset verschuiven daardoor de
+   bouwperiodecoëfficiënten van vrijstaand 0,015 omhoog en de constante 0,018
+   omlaag, bij de andere typen 0,005 of minder; de locatiecoëfficiënten
+   veranderen niet. Daarnaast gelden de BAG-kenmerken (bouwjaar, hoogte,
+   footprint, vbo-oppervlak) sinds deze fix alleen bij een match op adresniveau
+   (`cfg$geocode_max_niveau_bagkenmerken`, 10): bij een match op straat of PC6
+   horen ze bij een ander gebouw (circa 26.000 rijen in de schattingsset).
+   Beide fixes werken pas na een nieuwe run van stap 01 tot en met 05 onder een
+   nieuwe `cfg$est_tag`; de geocodering hoeft niet opnieuw, want de adressen
+   veranderen niet. Na de oude levering is er geen nieuwbouwvlag meer: Brainbay
+   levert bestaande bouw, en koopconditie 2 (vrij op naam) is daar geen
+   nieuwbouwkenmerk (mediaan bouwjaar elf jaar voor de transactie).
 
 ## Validatie
 
